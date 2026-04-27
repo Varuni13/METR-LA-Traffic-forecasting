@@ -203,8 +203,6 @@ def compute_snapshot_label(snapshot_idx: int) -> str:
 # PAGE 1: OVERVIEW  (Problem -> Network)
 # ---------------------------------------------------------------------
 if st.session_state.page == "Overview":
-    story_line("Problem")
-
     st.markdown(
         """
         <div class="main-header">
@@ -217,6 +215,8 @@ if st.session_state.page == "Overview":
         """,
         unsafe_allow_html=True,
     )
+    st.markdown("<div style='margin-top:0.35rem'></div>", unsafe_allow_html=True)
+    story_line("Problem")
 
     c1, c2, c3, c4, c5 = st.columns(5)
     kpis = [
@@ -320,8 +320,8 @@ if st.session_state.page == "Overview":
 # PAGE 2: LIVE TRAFFIC MAP  (Network -> Forecast) with time animation slider
 # ---------------------------------------------------------------------
 elif st.session_state.page == "Live Traffic Map":
-    story_line("Network")
     st.markdown("### Live Traffic Network — Los Angeles")
+    story_line("Network")
 
     n_snapshots = int(X_test.shape[0])
     max_snapshot = max(0, n_snapshots - 1)
@@ -480,9 +480,8 @@ elif st.session_state.page == "Live Traffic Map":
 # PAGE 3: FORECAST EXPLORER  (Forecast)
 # ---------------------------------------------------------------------
 elif st.session_state.page == "Forecast Explorer":
-    story_line("Forecast")
-
     st.markdown("### Interactive Forecast Explorer")
+    story_line("Forecast")
     st.caption("Explore T-GCN predictions vs actual speeds for any sensor and time period")
 
     col1, col2 = st.columns([1, 3])
@@ -639,9 +638,8 @@ elif st.session_state.page == "Forecast Explorer":
 # PAGE 4: DECISION DASHBOARD  (Decision)
 # ---------------------------------------------------------------------
 elif st.session_state.page == "Decision Dashboard":
-    story_line("Decision")
-
     st.markdown("### Ride-Hailing Decision Dashboard")
+    story_line("Decision")
     st.caption("Operational recommendations powered by T-GCN traffic intelligence")
 
     c1, c2, c3 = st.columns(3)
@@ -752,8 +750,8 @@ elif st.session_state.page == "Decision Dashboard":
 # PAGE 5: MODEL RESULTS  (Results)
 # ---------------------------------------------------------------------
 elif st.session_state.page == "Model Results":
-    story_line("Results")
     st.markdown("### Full Model Results")
+    story_line("Results")
 
     tab1, tab2, tab3 = st.tabs(["Performance Table", "Error Analysis", "Architecture"])
 
