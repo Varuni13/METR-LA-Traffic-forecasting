@@ -32,7 +32,7 @@ matplotlib.rcParams["figure.dpi"] = 150
 # STEP 1 — LOAD DATA
 # ---------------------------------------------------------------------------
 def step1_load_data():
-    print("\n=== STEP 1: Loading saved numpy arrays ===")
+    print("\n=== STEP 1: Loading data ===")
 
     X_train = torch.FloatTensor(np.load(config.DATA_DIR / "X_train.npy"))
     y_train = torch.FloatTensor(np.load(config.DATA_DIR / "y_train.npy"))
@@ -41,13 +41,6 @@ def step1_load_data():
     X_test  = torch.FloatTensor(np.load(config.DATA_DIR / "X_test.npy"))
     y_test  = torch.FloatTensor(np.load(config.DATA_DIR / "y_test.npy"))
 
-    print(f"X_train : {X_train.shape}")
-    print(f"y_train : {y_train.shape}")
-    print(f"X_val   : {X_val.shape}")
-    print(f"y_val   : {y_val.shape}")
-    print(f"X_test  : {X_test.shape}")
-    print(f"y_test  : {y_test.shape}")
-
     from torch_geometric_temporal.dataset import METRLADatasetLoader
     loader  = METRLADatasetLoader()
     dataset = loader.get_dataset(num_timesteps_in=12, num_timesteps_out=6)
@@ -55,15 +48,21 @@ def step1_load_data():
     edge_index = snap.edge_index.to(DEVICE)
     edge_attr  = snap.edge_attr.float().to(DEVICE)
 
-    print(f"edge_index shape : {edge_index.shape}")
-    print(f"edge_attr  shape : {edge_attr.shape}")
-    print("Data loaded successfully")
+    print(f"X_train    : {X_train.shape}")
+    print(f"y_train    : {y_train.shape}")
+    print(f"X_val      : {X_val.shape}")
+    print(f"y_val      : {y_val.shape}")
+    print(f"X_test     : {X_test.shape}")
+    print(f"y_test     : {y_test.shape}")
+    print(f"edge_index : {edge_index.shape}")
+    print(f"edge_attr  : {edge_attr.shape}")
+    print("Data loaded")
 
     return X_train, y_train, X_val, y_val, X_test, y_test, edge_index, edge_attr
 
 
 # ---------------------------------------------------------------------------
-# STEP 2 — DATASET AND DATALOADER
+# STEP 2 — DATASET AND DATALOADERS
 # ---------------------------------------------------------------------------
 class TrafficDataset(Dataset):
     def __init__(self, X, y):
@@ -78,7 +77,7 @@ class TrafficDataset(Dataset):
 
 
 def step2_dataloaders(X_train, y_train, X_val, y_val, X_test, y_test):
-    BATCH_SIZE = 32
+    BATCH_SIZE = 16
 
     train_loader = DataLoader(
         TrafficDataset(X_train, y_train),
@@ -98,80 +97,89 @@ def step2_dataloaders(X_train, y_train, X_val, y_val, X_test, y_test):
 
 
 # ---------------------------------------------------------------------------
-# STEP 3 — GNN MODEL
+# STEP 3 — IMPROVED MODEL
 # ---------------------------------------------------------------------------
-class TrafficGNN(nn.Module):
-    def __init__(self, num_nodes=207, in_channels=12, hidden_dim=64, out_steps=6):
+class ImprovedTrafficGNN(nn.Module):
+    def __init__(self, num_nodes=207, in_features=1, hidden_dim=128, out_steps=6):
         super().__init__()
         self.num_nodes  = num_nodes
         self.hidden_dim = hidden_dim
         self.out_steps  = out_steps
-        self.use_gconv  = False
-        self.use_tgcn   = False
+        self.in_features = in_features
 
-        try:
-            from torch_geometric_temporal.nn.recurrent import GConvGRU
-            self.gconv_gru = GConvGRU(in_channels=in_channels, out_channels=hidden_dim, K=2)
-            self.use_gconv = True
-            print("Using GConvGRU layer")
-        except Exception as e:
-            print(f"GConvGRU failed: {e}")
-            print("Falling back to TGCN")
-            try:
-                from torch_geometric_temporal.nn.recurrent import TGCN
-                self.tgcn      = TGCN(in_channels=in_channels, out_channels=hidden_dim)
-                self.use_tgcn  = True
-                self.use_gconv = False
-            except Exception:
-                self.use_gconv = False
-                self.use_tgcn  = False
-                self.gru = nn.GRU(in_channels, hidden_dim, batch_first=True)
+        from torch_geometric_temporal.nn.recurrent import GConvGRU
+
+        # Two stacked GConvGRU layers for deeper spatial-temporal learning
+        self.gconv_gru1 = GConvGRU(in_channels=in_features,  out_channels=hidden_dim, K=2)
+        self.gconv_gru2 = GConvGRU(in_channels=hidden_dim,   out_channels=hidden_dim, K=2)
+
+        # Batch normalization for stable training
+        self.bn = nn.BatchNorm1d(hidden_dim)
 
         self.output_layer = nn.Sequential(
-            nn.Linear(hidden_dim, 32),
+            nn.Linear(hidden_dim, 64),
             nn.ReLU(),
-            nn.Linear(32, out_steps),
+            nn.Dropout(0.1),
+            nn.Linear(64, out_steps),
         )
 
     def forward(self, x, edge_index, edge_attr):
-        # x: (batch, num_nodes, in_channels)
-        batch_size = x.shape[0]
+        # x: (batch, num_nodes, 12)
+        batch_size    = x.shape[0]
+        num_timesteps = x.shape[2]  # 12
 
-        if self.use_gconv:
-            outputs = []
-            for i in range(batch_size):
-                xi = x[i]  # (num_nodes, in_channels)
-                h  = self.gconv_gru(xi, edge_index, edge_attr)
-                outputs.append(h)
-            h = torch.stack(outputs, dim=0)  # (batch, num_nodes, hidden_dim)
+        batch_outputs = []
 
-        elif self.use_tgcn:
-            outputs = []
-            for i in range(batch_size):
-                xi = x[i]  # (num_nodes, in_channels)
-                h  = self.tgcn(xi, edge_index)
-                outputs.append(h)
-            h = torch.stack(outputs, dim=0)
+        for b in range(batch_size):
+            # (num_nodes, 12)
+            x_b = x[b]
 
-        else:
-            # Pure GRU fallback — no graph structure
-            x_reshaped = x.reshape(batch_size * self.num_nodes, 12).unsqueeze(-1)
-            h_out, _   = self.gru(x_reshaped)
-            h = h_out[:, -1, :].reshape(batch_size, self.num_nodes, self.hidden_dim)
+            h1 = None
+            h2 = None
 
-        out = self.output_layer(h)  # (batch, num_nodes, out_steps)
+            # Process each timestep sequentially — KEY IMPROVEMENT
+            for t in range(num_timesteps):
+                # (207, 1)
+                x_t = x_b[:, t].unsqueeze(-1)
+
+                # First GConvGRU layer
+                if h1 is None:
+                    h1 = self.gconv_gru1(x_t, edge_index, edge_attr)
+                else:
+                    h1 = self.gconv_gru1(x_t, edge_index, edge_attr, h1)
+
+                # Second GConvGRU layer
+                if h2 is None:
+                    h2 = self.gconv_gru2(h1, edge_index, edge_attr)
+                else:
+                    h2 = self.gconv_gru2(h1, edge_index, edge_attr, h2)
+
+            # h2 after all timesteps: (207, hidden_dim)
+            batch_outputs.append(h2)
+
+        # (batch, 207, hidden_dim)
+        h = torch.stack(batch_outputs, dim=0)
+
+        # Batch norm over node-feature dimension
+        batch_size_actual = h.shape[0]
+        h_flat = h.reshape(-1, self.hidden_dim)          # (batch*207, hidden_dim)
+        h_flat = self.bn(h_flat)
+        h = h_flat.reshape(batch_size_actual, self.num_nodes, self.hidden_dim)
+
+        out = self.output_layer(h)  # (batch, 207, 6)
         return out
 
 
 def step3_build_model():
-    print("\n=== STEP 3: Defining T-GCN model ===")
+    print("\n=== STEP 3: Defining Improved T-GCN ===")
 
-    model = TrafficGNN(num_nodes=207, in_channels=12, hidden_dim=64, out_steps=6)
+    model = ImprovedTrafficGNN(num_nodes=207, in_features=1, hidden_dim=128, out_steps=6)
     model = model.to(DEVICE)
 
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Model parameters: {total_params:,}")
-    print(f"Model device: {next(model.parameters()).device}")
+    print(f"Improved model parameters: {total_params:,}")
+    print("Architecture: 2-layer stacked GConvGRU, sequential timestep processing")
+    print(f"Key improvement: processes 12 timesteps one-by-one through graph layers")
 
     return model, total_params
 
@@ -182,19 +190,19 @@ def step3_build_model():
 def step4_training_setup(model):
     print("\n=== STEP 4: Training setup ===")
 
-    optimizer  = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
-    criterion  = nn.MSELoss()
-    scheduler  = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", patience=3, factor=0.5, verbose=True
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
+    criterion = nn.HuberLoss(delta=1.0)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=40, eta_min=1e-5
     )
 
-    NUM_EPOCHS      = 30
-    PATIENCE        = 7
-    MODEL_SAVE_PATH = config.DATA_DIR / "best_gnn_model.pt"
+    NUM_EPOCHS      = 50
+    PATIENCE        = 10
+    MODEL_SAVE_PATH = config.DATA_DIR / "best_gnn_v2_model.pt"
 
-    print(f"Optimizer     : Adam (lr=0.001, weight_decay=1e-5)")
-    print(f"Loss          : MSELoss")
-    print(f"Scheduler     : ReduceLROnPlateau (patience=3, factor=0.5)")
+    print(f"Optimizer     : Adam (lr=0.001, weight_decay=1e-4)")
+    print(f"Loss          : HuberLoss (delta=1.0) — robust to outliers")
+    print(f"Scheduler     : CosineAnnealingLR (T_max=40, eta_min=1e-5)")
     print(f"Epochs        : {NUM_EPOCHS}")
     print(f"Early stop    : patience={PATIENCE}")
     print(f"Save path     : {MODEL_SAVE_PATH}")
@@ -206,9 +214,10 @@ def step4_training_setup(model):
 # STEP 5 — TRAINING LOOP
 # ---------------------------------------------------------------------------
 def step5_train(model, train_loader, val_loader, optimizer, criterion,
-                scheduler, NUM_EPOCHS, PATIENCE, MODEL_SAVE_PATH, edge_index, edge_attr):
-    print("\n=== STEP 5: Training GNN on GPU ===")
-    print(f"Training for max {NUM_EPOCHS} epochs with early stopping (patience={PATIENCE})")
+                scheduler, NUM_EPOCHS, PATIENCE, MODEL_SAVE_PATH,
+                edge_index, edge_attr, total_params):
+    print("\n=== STEP 5: Training Improved GNN ===")
+    print("Sequential T-GCN -- each timestep processed through graph layers")
 
     best_val_loss    = float("inf")
     patience_counter = 0
@@ -230,7 +239,7 @@ def step5_train(model, train_loader, val_loader, optimizer, criterion,
             pred = model(X_batch, edge_index, edge_attr)
             loss = criterion(pred, y_batch)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.5)
             optimizer.step()
             train_loss += loss.item()
         avg_train = train_loss / len(train_loader)
@@ -249,8 +258,7 @@ def step5_train(model, train_loader, val_loader, optimizer, criterion,
         avg_val = val_loss / len(val_loader)
         val_losses.append(avg_val)
 
-        scheduler.step(avg_val)
-
+        scheduler.step()
         epoch_time = time.time() - epoch_start
 
         if avg_val < best_val_loss:
@@ -258,12 +266,12 @@ def step5_train(model, train_loader, val_loader, optimizer, criterion,
             best_epoch    = epoch
             torch.save(
                 {
-                    "epoch":               epoch,
-                    "model_state_dict":    model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "val_loss":            best_val_loss,
-                    "train_losses":        train_losses,
-                    "val_losses":          val_losses,
+                    "epoch":            epoch,
+                    "model_state_dict": model.state_dict(),
+                    "val_loss":         best_val_loss,
+                    "train_losses":     train_losses,
+                    "val_losses":       val_losses,
+                    "total_params":     total_params,
                 },
                 MODEL_SAVE_PATH,
             )
@@ -277,17 +285,17 @@ def step5_train(model, train_loader, val_loader, optimizer, criterion,
             f"Epoch {epoch:3d}/{NUM_EPOCHS} | "
             f"Train: {avg_train:.5f} | "
             f"Val: {avg_val:.5f} | "
+            f"LR: {scheduler.get_last_lr()[0]:.6f} | "
             f"Time: {epoch_time:.1f}s{marker}"
         )
 
         if patience_counter >= PATIENCE:
-            print(f"\nEarly stopping triggered at epoch {epoch}")
-            print(f"Best epoch was {best_epoch} with val loss {best_val_loss:.5f}")
+            print(f"Early stopping at epoch {epoch}")
+            print(f"Best was epoch {best_epoch} with val loss {best_val_loss:.5f}")
             break
 
     total_time = time.time() - training_start
-    print(f"\nTotal training time: {total_time:.1f}s ({total_time/60:.1f} minutes)")
-    print(f"Best model saved from epoch {best_epoch}")
+    print(f"Total training time: {total_time:.1f}s ({total_time/60:.1f} min)")
 
     return train_losses, val_losses, best_epoch, total_time
 
@@ -295,11 +303,10 @@ def step5_train(model, train_loader, val_loader, optimizer, criterion,
 # ---------------------------------------------------------------------------
 # STEP 6 — PLOT TRAINING HISTORY
 # ---------------------------------------------------------------------------
-def step6_plot_history(model, MODEL_SAVE_PATH):
+def step6_plot_history(MODEL_SAVE_PATH):
     print("\n=== STEP 6: Plotting training history ===")
 
     checkpoint         = torch.load(MODEL_SAVE_PATH, map_location=DEVICE)
-    model.load_state_dict(checkpoint["model_state_dict"])
     saved_train_losses = checkpoint["train_losses"]
     saved_val_losses   = checkpoint["val_losses"]
     best_ep            = checkpoint["epoch"]
@@ -313,7 +320,8 @@ def step6_plot_history(model, MODEL_SAVE_PATH):
             marker="s", markersize=3, label="Validation Loss", linewidth=2)
     ax.axvline(x=best_ep, color="green", linestyle=":", linewidth=2,
                label=f"Best epoch ({best_ep})")
-    ax.scatter([best_ep], [min(saved_val_losses)], color="green", s=150, zorder=5, marker="*")
+    ax.scatter([best_ep], [min(saved_val_losses)], color="green",
+               s=150, zorder=5, marker="*")
     ax.annotate(
         f"Best model\nVal Loss={min(saved_val_losses):.4f}",
         xy=(best_ep, min(saved_val_losses)),
@@ -322,29 +330,32 @@ def step6_plot_history(model, MODEL_SAVE_PATH):
         arrowprops=dict(arrowstyle="->", color="green"),
     )
     ax.set_xlabel("Epoch", fontsize=12)
-    ax.set_ylabel("MSE Loss", fontsize=12)
-    ax.set_title("T-GCN Training History — METR-LA Traffic Forecasting", fontsize=13)
+    ax.set_ylabel("Huber Loss", fontsize=12)
+    ax.set_title("Improved T-GCN (V2) Training History — METR-LA", fontsize=13)
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
     fig.text(
         0.5, -0.05,
-        "Figure 7: Training and validation loss curves. "
-        "Green line marks best model saved by early stopping.",
+        "Figure 7b: Improved T-GCN (v2) training history with sequential timestep "
+        "processing and 2-layer architecture.",
         ha="center", fontsize=9, style="italic",
     )
     plt.tight_layout()
-    plt.savefig(config.FIGURES_DIR / "fig7_training_history.png", dpi=150, bbox_inches="tight")
-    print("Saved fig7_training_history.png")
+    plt.savefig(config.FIGURES_DIR / "fig7b_training_history_v2.png", dpi=150, bbox_inches="tight")
+    print("Saved fig7b")
     plt.close()
 
 
 # ---------------------------------------------------------------------------
 # STEP 7 — EVALUATE ON TEST SET
 # ---------------------------------------------------------------------------
-def step7_evaluate(model, test_loader, edge_index, edge_attr):
-    print("\n=== STEP 7: Evaluating GNN on test set ===")
+def step7_evaluate(model, test_loader, edge_index, edge_attr, MODEL_SAVE_PATH):
+    print("\n=== STEP 7: Evaluating Improved GNN ===")
 
+    checkpoint = torch.load(MODEL_SAVE_PATH, map_location=DEVICE)
+    model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
+
     all_preds   = []
     all_targets = []
 
@@ -358,156 +369,88 @@ def step7_evaluate(model, test_loader, edge_index, edge_attr):
     all_preds   = np.concatenate(all_preds,   axis=0)
     all_targets = np.concatenate(all_targets, axis=0)
 
-    print(f"all_preds   shape: {all_preds.shape}")
-    print(f"all_targets shape: {all_targets.shape}")
-
-    gnn_results = {}
+    gnn_v2_results = {}
+    print("=== V2 Results ===")
     for horizon_idx, horizon_name in zip([0, 2, 5], ["5min", "15min", "30min"]):
         pred_h = all_preds[:, :, horizon_idx].flatten()
         true_h = all_targets[:, :, horizon_idx].flatten()
         mae    = mean_absolute_error(true_h, pred_h)
         rmse   = np.sqrt(mean_squared_error(true_h, pred_h))
-        gnn_results[horizon_name] = {"MAE": round(mae, 4), "RMSE": round(rmse, 4)}
-        print(f"GNN {horizon_name}: MAE={mae:.4f}, RMSE={rmse:.4f}")
+        gnn_v2_results[horizon_name] = {"MAE": round(mae, 4), "RMSE": round(rmse, 4)}
+        print(f"V2 GNN {horizon_name}: MAE={mae:.4f}, RMSE={rmse:.4f}")
 
-    np.save(config.DATA_DIR / "gnn_predictions.npy", all_preds)
-    np.save(config.DATA_DIR / "gnn_targets.npy",     all_targets)
+    np.save(config.DATA_DIR / "gnn_v2_predictions.npy", all_preds)
+    np.save(config.DATA_DIR / "gnn_v2_targets.npy",     all_targets)
 
-    return gnn_results
+    return gnn_v2_results
 
 
 # ---------------------------------------------------------------------------
-# STEP 8 — COMPARE WITH BASELINES
+# STEP 8 — FULL COMPARISON TABLE
 # ---------------------------------------------------------------------------
-def step8_compare(gnn_results):
-    print("\n=== STEP 8: Comparison with baselines ===")
+def step8_compare(gnn_v2_results):
+    print("\n=== STEP 8: Full comparison ===")
 
     import pandas as pd
 
-    baseline_df = pd.read_csv(config.DATA_DIR / "baseline_results.csv")
+    existing_df = pd.read_csv(config.DATA_DIR / "all_results.csv")
 
-    gnn_rows = []
+    v2_rows = []
     for horizon in ["5min", "15min", "30min"]:
-        gnn_rows.append({
-            "Model":   "T-GCN",
+        v2_rows.append({
+            "Model":   "T-GCN-V2",
             "Horizon": horizon,
-            "MAE":     gnn_results[horizon]["MAE"],
-            "RMSE":    gnn_results[horizon]["RMSE"],
+            "MAE":     gnn_v2_results[horizon]["MAE"],
+            "RMSE":    gnn_v2_results[horizon]["RMSE"],
         })
-    gnn_df      = pd.DataFrame(gnn_rows)
-    all_results = pd.concat([baseline_df, gnn_df], ignore_index=True)
 
-    print(all_results.to_string())
-    all_results.to_csv(config.DATA_DIR / "all_results.csv", index=False)
+    full_results = pd.concat([existing_df, pd.DataFrame(v2_rows)], ignore_index=True)
+    print(full_results.to_string())
+    full_results.to_csv(config.DATA_DIR / "all_results_v2.csv", index=False)
+
+    RF_RESULTS = {"5min": 0.1477, "15min": 0.2005, "30min": 0.2631}
+    V1_RESULTS = {"5min": 0.1461, "15min": 0.2164, "30min": 0.2990}
 
     improvements = {}
     for horizon in ["5min", "15min", "30min"]:
-        rf_mae  = baseline_df[
-            (baseline_df.Model == "RandomForest") & (baseline_df.Horizon == horizon)
-        ]["MAE"].values[0]
-        gnn_mae     = gnn_results[horizon]["MAE"]
-        improvement = (rf_mae - gnn_mae) / rf_mae * 100
-        improvements[horizon] = improvement
+        rf_mae      = RF_RESULTS[horizon]
+        v1_mae      = V1_RESULTS[horizon]
+        v2_mae      = gnn_v2_results[horizon]["MAE"]
+        imp_vs_rf   = (rf_mae - v2_mae) / rf_mae * 100
+        imp_vs_v1   = (v1_mae - v2_mae) / v1_mae * 100
+        improvements[horizon] = imp_vs_rf
         print(
-            f"{horizon}: RF MAE={rf_mae:.4f} → GNN MAE={gnn_mae:.4f} | "
-            f"Improvement: {improvement:.1f}%"
+            f"{horizon}: RF={rf_mae:.4f} | V1={v1_mae:.4f} | V2={v2_mae:.4f} | "
+            f"vs RF: {imp_vs_rf:+.1f}% | vs V1: {imp_vs_v1:+.1f}%"
         )
 
     return improvements
 
 
 # ---------------------------------------------------------------------------
-# STEP 9 — ARCHITECTURE DIAGRAM
+# STEP 9 — FINAL SUMMARY
 # ---------------------------------------------------------------------------
-def step9_architecture():
-    print("\n=== STEP 9: Architecture diagram ===")
-
-    from matplotlib.patches import FancyBboxPatch
-
-    fig, ax = plt.subplots(figsize=(14, 5))
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 5)
-    ax.axis("off")
-
-    boxes = [
-        (0.3,  1.5, 2.0, 2.0, "lightblue",   "INPUT\n207 sensors\n12 timesteps\n(last 60 min)"),
-        (3.0,  1.5, 2.0, 2.0, "lightyellow",  "GRAPH CONV\nGConvGRU\nK=2 hops\nSpatial"),
-        (5.7,  1.5, 2.0, 2.0, "lightyellow",  "HIDDEN STATE\n207 × 64\ndimensions\nTemporal"),
-        (8.4,  1.5, 2.0, 2.0, "lightgreen",   "OUTPUT PROJ\nLinear→ReLU\n→Linear\n64→32→6"),
-        (11.1, 1.5, 2.0, 2.0, "lightcoral",   "PREDICTIONS\n207 sensors\n5/15/30 min\nahead"),
-    ]
-
-    for (x, y, w, h, color, text) in boxes:
-        rect = FancyBboxPatch(
-            (x, y), w, h,
-            boxstyle="round,pad=0.1",
-            facecolor=color, edgecolor="gray", linewidth=1.5,
-        )
-        ax.add_patch(rect)
-        ax.text(x + w / 2, y + h / 2, text,
-                ha="center", va="center", fontsize=9, fontweight="bold")
-
-    arrow_positions = [(2.3, 2.5), (5.0, 2.5), (7.7, 2.5), (10.4, 2.5)]
-    for xpos, ypos in arrow_positions:
-        ax.annotate(
-            "", xy=(xpos + 0.4, ypos), xytext=(xpos, ypos),
-            arrowprops=dict(arrowstyle="->", color="black", lw=2),
-        )
-
-    ax.annotate(
-        "Road Network\n1722 edges",
-        xy=(3.0, 1.5), xytext=(1.3, 0.5),
-        fontsize=8, ha="center", color="darkblue",
-        arrowprops=dict(
-            arrowstyle="->", color="darkblue",
-            connectionstyle="arc3,rad=-0.3",
-        ),
-    )
-
-    ax.set_title(
-        "T-GCN Model Architecture — METR-LA Traffic Forecasting",
-        fontsize=13, fontweight="bold", pad=20,
-    )
-    fig.text(
-        0.5, -0.05,
-        "Figure 8: T-GCN combines graph convolution (spatial: sensor neighbors) "
-        "with GRU memory (temporal: 60-min history).",
-        ha="center", fontsize=9, style="italic",
-    )
-    plt.tight_layout()
-    plt.savefig(config.FIGURES_DIR / "fig8_architecture.png", dpi=150, bbox_inches="tight")
-    print("Saved fig8_architecture.png")
-    plt.close()
-
-
-# ---------------------------------------------------------------------------
-# STEP 10 — FINAL SUMMARY
-# ---------------------------------------------------------------------------
-def step10_summary(total_params, best_epoch, total_time, gnn_results, improvements):
-    print("\n" + "=" * 60)
-    print("STAGE 4 COMPLETE — T-GCN RESULTS")
-    print("=" * 60)
-    print(f"Model: T-GCN with GConvGRU")
-    print(f"Parameters: {total_params:,}")
-    print(f"Best epoch: {best_epoch}")
-    print(f"Training time: {total_time:.1f}s")
-    print("─" * 60)
-    print("GNN Test Results:")
+def step9_summary(total_params, best_epoch, total_time, gnn_v2_results, improvements):
+    print("\n" + "=" * 65)
+    print("STAGE 4 V2 COMPLETE -- IMPROVED T-GCN RESULTS")
+    print("=" * 65)
+    print("Architecture improvements:")
+    print("  - Sequential timestep processing (12 steps one by one)")
+    print("  - 2 stacked GConvGRU layers (deeper spatial learning)")
+    print("  - Hidden dim: 64 -> 128 (more capacity)")
+    print("  - Huber loss (robust to outliers)")
+    print("  - Batch normalization")
+    print(f"  - Parameters: {total_params:,}")
+    print("─" * 65)
+    print("V2 GNN Test Results:")
     for horizon in ["5min", "15min", "30min"]:
-        r = gnn_results[horizon]
+        r = gnn_v2_results[horizon]
         print(f"  {horizon}: MAE={r['MAE']:.4f}, RMSE={r['RMSE']:.4f}")
-    print("─" * 60)
-    print("Improvement over Random Forest:")
+    print("─" * 65)
+    print("Improvement vs Random Forest:")
     for horizon in ["5min", "15min", "30min"]:
-        print(f"  {horizon}: {improvements[horizon]:.1f}%")
-    print("─" * 60)
-    print("Files saved:")
-    print("  data/best_gnn_model.pt")
-    print("  data/gnn_predictions.npy")
-    print("  data/all_results.csv")
-    print("  figures/fig7_training_history.png")
-    print("  figures/fig8_architecture.png")
-    print("=" * 60)
+        print(f"  {horizon}: {improvements[horizon]:+.1f}%")
+    print("=" * 65)
 
 
 # ---------------------------------------------------------------------------
@@ -533,29 +476,26 @@ def main():
         model, train_loader, val_loader,
         optimizer, criterion, scheduler,
         NUM_EPOCHS, PATIENCE, MODEL_SAVE_PATH,
-        edge_index, edge_attr,
+        edge_index, edge_attr, total_params,
     )
 
     # Step 6
-    step6_plot_history(model, MODEL_SAVE_PATH)
+    step6_plot_history(MODEL_SAVE_PATH)
 
     # Step 7
-    gnn_results = step7_evaluate(model, test_loader, edge_index, edge_attr)
+    gnn_v2_results = step7_evaluate(model, test_loader, edge_index, edge_attr, MODEL_SAVE_PATH)
 
     # Step 8
-    improvements = step8_compare(gnn_results)
+    improvements = step8_compare(gnn_v2_results)
 
     # Step 9
-    step9_architecture()
-
-    # Step 10
-    step10_summary(total_params, best_epoch, total_time, gnn_results, improvements)
+    step9_summary(total_params, best_epoch, total_time, gnn_v2_results, improvements)
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception:
-        print("\n[ERROR] Stage 4 failed with the following traceback:")
+        print("\n[ERROR] Stage 4 V2 failed with the following traceback:")
         traceback.print_exc()
         sys.exit(1)

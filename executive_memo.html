@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    color: #1a1a1a;
+    background: white;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 18mm 20mm 18mm 20mm;
+  }
+  .header-bar {
+    background: #1B3A6B;
+    color: white;
+    padding: 14px 20px;
+    margin: -18mm -20mm 16px -20mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-title { font-size: 16pt; font-weight: bold; }
+  .header-sub { font-size: 9pt; opacity: 0.85; margin-top: 3px; }
+  .header-date { font-size: 9pt; text-align: right; opacity: 0.85; }
+  .memo-meta {
+    background: #f0f4fa;
+    border-left: 4px solid #1B3A6B;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 10pt;
+  }
+  .memo-meta table { width: 100%; border-collapse: collapse; }
+  .memo-meta td { padding: 2px 8px 2px 0; }
+  .memo-meta .label { font-weight: bold; color: #1B3A6B; width: 80px; }
+  h2 {
+    font-size: 11pt;
+    color: #1B3A6B;
+    border-bottom: 1.5px solid #1B3A6B;
+    padding-bottom: 3px;
+    margin: 13px 0 7px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  p { margin-bottom: 6px; line-height: 1.5; font-size: 10.5pt; }
+  .highlight-box {
+    background: #eef2f8;
+    border: 1px solid #c0cfe8;
+    border-radius: 4px;
+    padding: 9px 13px;
+    margin: 8px 0;
+  }
+  .metrics-row {
+    display: flex;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  .metric-card {
+    flex: 1;
+    background: #1B3A6B;
+    color: white;
+    border-radius: 5px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .metric-card .val { font-size: 16pt; font-weight: bold; }
+  .metric-card .lbl { font-size: 8pt; opacity: 0.85; margin-top: 2px; }
+  .action-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 10pt;
+  }
+  .action-table th {
+    background: #1B3A6B;
+    color: white;
+    padding: 6px 10px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .action-table td {
+    padding: 5px 10px;
+    border-bottom: 1px solid #e0e6f0;
+    vertical-align: top;
+  }
+  .action-table tr:nth-child(even) td { background: #f7f9fc; }
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 8.5pt;
+    font-weight: bold;
+  }
+  .badge-red   { background: #fde8e8; color: #b71c1c; }
+  .badge-amber { background: #fff3e0; color: #e65100; }
+  .badge-green { background: #e8f5e9; color: #1b5e20; }
+  .footer-bar {
+    background: #1B3A6B;
+    color: white;
+    padding: 7px 20px;
+    margin: 14px -20mm -18mm -20mm;
+    font-size: 8pt;
+    display: flex;
+    justify-content: space-between;
+    opacity: 0.9;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-bar">
+  <div>
+    <div class="header-title">EXECUTIVE MEMO</div>
+    <div class="header-sub">Urban Intelligence Team &mdash; Ride-Hailing Operations</div>
+  </div>
+  <div class="header-date">
+    Date: April 27, 2026<br>
+    Classification: Internal
+  </div>
+</div>
+
+<div class="memo-meta">
+  <table>
+    <tr>
+      <td class="label">TO:</td>
+      <td>Head of Operations, Los Angeles Region</td>
+      <td class="label">FROM:</td>
+      <td>Urban Intelligence &amp; Data Science Team</td>
+    </tr>
+    <tr>
+      <td class="label">RE:</td>
+      <td>Graph ML Traffic Forecasting &mdash; Deployment Readiness</td>
+      <td class="label">REF:</td>
+      <td>EM627 &mdash; METR-LA Traffic Intelligence Project</td>
+    </tr>
+  </table>
+</div>
+
+<h2>What the Model Does</h2>
+<p>
+We have developed and validated a <strong>Graph Neural Network (T-GCN)</strong> traffic forecasting
+system trained on 4 months of real highway sensor data from 207 loop detectors across
+Los Angeles. The model predicts traffic speeds at all 207 sensor locations simultaneously
+at <strong>5, 15, and 30 minutes ahead</strong>, updating every 5 minutes.
+</p>
+
+<div class="metrics-row">
+  <div class="metric-card">
+    <div class="val">0.140</div>
+    <div class="lbl">MAE at 5-min<br>(best model)</div>
+  </div>
+  <div class="metric-card">
+    <div class="val">0.200</div>
+    <div class="lbl">MAE at 15-min<br>(beats RF baseline)</div>
+  </div>
+  <div class="metric-card">
+    <div class="val">5.2%</div>
+    <div class="lbl">Improvement over<br>best non-graph model</div>
+  </div>
+  <div class="metric-card">
+    <div class="val">0.672</div>
+    <div class="lbl">Spatial correlation<br>(justifies graph model)</div>
+  </div>
+</div>
+
+<h2>Why It Matters</h2>
+<p>
+Current dispatch systems react to congestion <em>after</em> it forms. This model predicts
+congestion <strong>15&ndash;30 minutes before it peaks</strong>, enabling proactive repositioning of drivers
+before demand-supply mismatch occurs. Analysis of 34,255 traffic snapshots shows that
+<strong>22.8% of highway observations involve congested conditions</strong> &mdash; exactly when accurate
+ETAs and driver availability matter most to customers.
+</p>
+<div class="highlight-box">
+<strong>Key finding:</strong> Sensors 16 and 196 (near Downtown LA, coordinates 34.07&deg;N 118.23&deg;W)
+are congested <strong>100% of observed time</strong>. These two zones alone affect thousands of daily
+pickups and require permanent elevated driver staffing &mdash; not just reactive surge pricing.
+</div>
+
+<h2>Where Action Is Needed</h2>
+<table class="action-table">
+  <tr>
+    <th>Priority</th>
+    <th>Zone</th>
+    <th>Condition</th>
+    <th>Recommended Action</th>
+  </tr>
+  <tr>
+    <td><span class="badge badge-red">CRITICAL</span></td>
+    <td>Sensors 16, 196 (34.07&deg;N 118.23&deg;W)</td>
+    <td>Congested 100% of time</td>
+    <td>Permanent driver buffer &mdash; 5 extra drivers at all times</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-red">CRITICAL</span></td>
+    <td>Sensor 56 (34.09&deg;N 118.24&deg;W)</td>
+    <td>Congested 91% of time</td>
+    <td>Pre-position drivers by 6:45am and 4:45pm daily</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-amber">HIGH</span></td>
+    <td>58 high-congestion sensors</td>
+    <td>Congested 25&ndash;75% of time</td>
+    <td>Surge pricing trigger when predicted speed below &minus;0.3</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-amber">HIGH</span></td>
+    <td>42 low-reliability sensors</td>
+    <td>MAE &gt; 0.245 (top 20%)</td>
+    <td>Display ETA uncertainty flag in customer app</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-green">STANDARD</span></td>
+    <td>All 207 sensors</td>
+    <td>Evening rush (5&ndash;7pm) more severe than morning</td>
+    <td>Increase driver incentives from 4:30pm Mon&ndash;Fri</td>
+  </tr>
+</table>
+
+<h2>Decision Recommendation</h2>
+<p>
+The T-GCN model is ready for <strong>pilot deployment</strong> as a decision-support layer for the
+LA operations team. It should be integrated into the dispatch dashboard to flag predicted
+congestion zones 15 minutes in advance. For 30-minute predictions, add a 15% ETA buffer
+to customer-facing estimates to account for reduced model accuracy at longer horizons.
+</p>
+<p>
+<strong>Immediate next step:</strong> Retrain the model on 2024&ndash;2025 data to capture post-pandemic
+commuting pattern shifts. Current model was validated on 2012 sensor data; performance
+on modern traffic patterns requires validation before full production deployment.
+</p>
+
+<div class="footer-bar">
+  <span>METR-LA Traffic Intelligence &mdash; EM627 Spatial Data Science Project</span>
+  <span>T-GCN Model | 207 sensors | 16 min training | RTX 3060 GPU</span>
+</div>
+
+</body>
+</html>

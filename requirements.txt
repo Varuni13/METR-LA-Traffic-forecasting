@@ -1,0 +1,14 @@
+torch==2.5.1
+torch-geometric==2.7.0
+torch-geometric-temporal==0.54.0
+numpy==2.4.3
+pandas==2.3.1
+scikit-learn==1.7.1
+xgboost==3.2.0
+matplotlib==3.10.8
+seaborn==0.13.2
+geopandas==1.1.1
+folium==0.20.0
+contextily==1.6.2
+networkx==3.5
+scipy==1.16.0
