@@ -491,59 +491,36 @@ if st.session_state.page == "Overview":
         _fc_bg    = "#1A0A0A" if _fc_ids else "#0A1E0F"
         _fc_border= "#5C1515" if _fc_ids else "#1A5C2A"
 
-        st.markdown(f"""<div style='display:flex;flex-direction:column;gap:10px'>
-
-<!-- Performance table -->
-<div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:10px;padding:12px 16px'>
-    <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:1.2px;
-                            font-weight:700;margin-bottom:4px'>T-GCN vs Random Forest</div>
-    <table style='width:100%;border-collapse:collapse'>
-        <tr style='border-bottom:1px solid #1E3A5F'>
-            <th style='padding:6px 10px 6px 0;color:#4A6A8A;font-size:0.65rem;font-weight:600;
-                                 text-align:left;text-transform:uppercase'>Horizon</th>
-            <th style='padding:6px 8px;color:#4A6A8A;font-size:0.65rem;font-weight:600;
-                                 text-align:left;text-transform:uppercase'>MAE</th>
-            <th style='padding:6px 0;color:#4A6A8A;font-size:0.65rem;font-weight:600;
-                                 text-align:right;text-transform:uppercase'>vs RF</th>
-        </tr>
-        {perf_rows}
-    </table>
-</div>
-
-<!-- 2-column mini stat cards -->
-<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px'>
-
-    <div style='background:#0A1525;border:1px solid #1E3A6A;border-top:2px solid #4A90D9;
-                            border-radius:8px;padding:10px 12px'>
-        <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Spatial r</div>
-        <div style='color:#4A90D9;font-size:1.3rem;font-weight:800;margin:4px 0'>0.672</div>
-        <div style='color:#6B8CAE;font-size:0.65rem'>GNN justified</div>
-    </div>
-
-    <div style='background:{_fc_bg};border:1px solid {_fc_border};border-top:2px solid {_fc_color};
-                            border-radius:8px;padding:10px 12px'>
-        <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Always congested</div>
-        <div style='color:{_fc_color};font-size:1.1rem;font-weight:800;margin:4px 0'>{_fc_label}</div>
-        <div style='color:#6B8CAE;font-size:0.65rem'>100% congestion rate</div>
-    </div>
-
-    <div style='background:#0A1E0F;border:1px solid #1A5C2A;border-top:2px solid #27AE60;
-                            border-radius:8px;padding:10px 12px'>
-        <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Parameters</div>
-        <div style='color:#27AE60;font-size:1.3rem;font-weight:800;margin:4px 0'>27,750</div>
-        <div style='color:#6B8CAE;font-size:0.65rem'>Lightweight model</div>
-    </div>
-
-    <div style='background:#1A1408;border:1px solid #5C4A15;border-top:2px solid #F39C12;
-                            border-radius:8px;padding:10px 12px'>
-        <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Training time</div>
-        <div style='color:#F39C12;font-size:1.1rem;font-weight:800;margin:4px 0'>16 min</div>
-        <div style='color:#6B8CAE;font-size:0.65rem'>RTX 3060 GPU</div>
-    </div>
-
-</div><!-- end grid -->
-
-</div><!-- end flex column -->""", unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='display:flex;flex-direction:column;gap:10px'>"
+            f"<div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:10px;padding:12px 16px'>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:4px'>T-GCN vs Random Forest</div>"
+            f"<table style='width:100%;border-collapse:collapse'>"
+            f"<tr style='border-bottom:1px solid #1E3A5F'>"
+            f"<th style='padding:6px 10px 6px 0;color:#4A6A8A;font-size:0.65rem;font-weight:600;text-align:left;text-transform:uppercase'>Horizon</th>"
+            f"<th style='padding:6px 8px;color:#4A6A8A;font-size:0.65rem;font-weight:600;text-align:left;text-transform:uppercase'>MAE</th>"
+            f"<th style='padding:6px 0;color:#4A6A8A;font-size:0.65rem;font-weight:600;text-align:right;text-transform:uppercase'>vs RF</th>"
+            f"</tr>{perf_rows}</table></div>"
+            f"<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px'>"
+            f"<div style='background:#0A1525;border:1px solid #1E3A6A;border-top:2px solid #4A90D9;border-radius:8px;padding:10px 12px'>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Spatial r</div>"
+            f"<div style='color:#4A90D9;font-size:1.3rem;font-weight:800;margin:4px 0'>0.672</div>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem'>GNN justified</div></div>"
+            f"<div style='background:{_fc_bg};border:1px solid {_fc_border};border-top:2px solid {_fc_color};border-radius:8px;padding:10px 12px'>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Always congested</div>"
+            f"<div style='color:{_fc_color};font-size:1.1rem;font-weight:800;margin:4px 0'>{_fc_label}</div>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem'>100% congestion rate</div></div>"
+            f"<div style='background:#0A1E0F;border:1px solid #1A5C2A;border-top:2px solid #27AE60;border-radius:8px;padding:10px 12px'>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Parameters</div>"
+            f"<div style='color:#27AE60;font-size:1.3rem;font-weight:800;margin:4px 0'>27,750</div>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem'>Lightweight model</div></div>"
+            f"<div style='background:#1A1408;border:1px solid #5C4A15;border-top:2px solid #F39C12;border-radius:8px;padding:10px 12px'>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Training time</div>"
+            f"<div style='color:#F39C12;font-size:1.1rem;font-weight:800;margin:4px 0'>16 min</div>"
+            f"<div style='color:#6B8CAE;font-size:0.65rem'>RTX 3060 GPU</div></div>"
+            f"</div></div>",
+            unsafe_allow_html=True,
+        )
 
     # ── ZONE 3: How It Works — 3 horizontal cards + Training Summary ───
     st.markdown("<div style='border-bottom:1px solid #1E2D45;margin:1.2rem 0'></div>",
@@ -624,7 +601,7 @@ elif st.session_state.page == "Live Traffic Map":
 
     with col_ctrl:
         st.markdown("**Map Controls**")
-        map_mode    = st.radio("Color sensors by:", ["Congestion Rate", "Prediction Error", "Mean Speed"])
+        map_mode    = st.selectbox("Color sensors by:", ["Congestion Rate", "Prediction Error", "Mean Speed"])
         show_labels = st.checkbox("Show sensor labels", value=False)
 
         st.markdown("---")
