@@ -1,4 +1,14 @@
-data/
+# Exclude large/raw data files but allow app data
+data/METR-LA.zip
+data/METR-LA-extracted/
+data/X_train.npy
+data/X_val.npy
+data/y_train.npy
+data/y_val.npy
+data/y_test.npy
+data/node_values.npy
+data/best_gnn_model.pt
+data/best_gnn_v3_model.pt
 __pycache__/
 *.pyc
 *.pyo

@@ -1,0 +1,13 @@
+Model,Horizon,MAE,RMSE
+Persistence,5min,0.1443,0.3395
+Persistence,15min,0.2006,0.4911
+Persistence,30min,0.266,0.6335
+HistoricalAvg,5min,0.7514,1.0985
+HistoricalAvg,15min,0.7515,1.0985
+HistoricalAvg,30min,0.7515,1.0985
+RandomForest,5min,0.1477,0.3277
+RandomForest,15min,0.2209,0.4734
+RandomForest,30min,0.299,0.5978
+T-GCN-V3,5min,0.1405,0.3179
+T-GCN-V3,15min,0.196,0.462
+T-GCN-V3,30min,0.2636,0.5929
