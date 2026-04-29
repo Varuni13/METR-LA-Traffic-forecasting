@@ -26,7 +26,6 @@ st.markdown("""
 <style>
 /* ── Base ─────────────────────────────────────────────────── */
 .stApp { background-color: #080C14; }
-/* Hide sidebar, its toggle, and Streamlit's Deploy toolbar */
 [data-testid="stSidebar"]          { display: none !important; }
 [data-testid="collapsedControl"]   { display: none !important; }
 section[data-testid="stSidebarNav"]{ display: none !important; }
@@ -35,75 +34,52 @@ section[data-testid="stSidebarNav"]{ display: none !important; }
 header[data-testid="stHeader"]     { display: none !important; }
 .stMainBlockContainer              { max-width: 100% !important; padding: 1rem 2rem !important; }
 
-/* ── Top header bar ────────────────────────────────────────── */
-.top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #0D1117;
-  border-bottom: 1px solid #1E2D45;
-  padding: 10px 20px;
-  margin-bottom: 0;
-  border-radius: 8px 8px 0 0;
-}
-.brand { display: flex; align-items: center; gap: 10px; }
-.brand-title { color: #E8F0FE; font-weight: 700; font-size: 0.95rem; line-height: 1.2; }
-.brand-sub   { color: #6B8CAE; font-size: 0.7rem; }
-.top-bar-right { display: flex; align-items: center; gap: 16px; }
-.ts-label { color: #6B8CAE; font-size: 0.7rem; }
-.ts-value { color: #4A90D9; font-size: 0.85rem; font-weight: 600; }
-
 /* ── Pill nav ──────────────────────────────────────────────── */
-/* Add gap between header and nav */
-div[data-testid="stRadio"] {
-  margin-top: 14px !important;
-}
+div[data-testid="stRadio"] { margin-top: 14px !important; }
 div[data-testid="stRadio"] > label { display: none !important; }
 div[data-testid="stRadio"] > div[role="radiogroup"] {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 6px !important;
-  flex-wrap: nowrap !important;
-  background: transparent !important;
+  display: flex !important; flex-direction: row !important;
+  gap: 6px !important; flex-wrap: nowrap !important; background: transparent !important;
 }
-/* Inactive tab — visible pill shape so it's clearly clickable */
 div[data-testid="stRadio"] label {
-  padding: 6px 18px !important;
-  border-radius: 20px !important;
-  background: #0D1A2D !important;
-  border: 1px solid #1E3A5F !important;
-  color: #7A9CC0 !important;
-  font-size: 0.83rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  white-space: nowrap !important;
-  transition: all 0.15s !important;
+  padding: 6px 18px !important; border-radius: 20px !important;
+  background: #0D1A2D !important; border: 1px solid #1E3A5F !important;
+  color: #7A9CC0 !important; font-size: 0.83rem !important;
+  font-weight: 500 !important; cursor: pointer !important;
+  white-space: nowrap !important; transition: all 0.15s !important;
   margin-bottom: 0 !important;
 }
-/* Hover */
 div[data-testid="stRadio"] label:hover {
-  background: #132540 !important;
-  border-color: #2E5090 !important;
-  color: #A8C0E8 !important;
+  background: #132540 !important; border-color: #2E5090 !important; color: #A8C0E8 !important;
 }
-/* Active tab — solid blue fill */
 div[data-testid="stRadio"] label:has(input:checked) {
-  background: #1A4A8A !important;
-  border-color: #4A90D9 !important;
-  color: #E8F0FE !important;
-  font-weight: 700 !important;
+  background: #1A4A8A !important; border-color: #4A90D9 !important;
+  color: #E8F0FE !important; font-weight: 700 !important;
 }
-/* Hide radio circle dot */
 div[data-testid="stRadio"] label > div:first-child { display: none !important; }
 div[data-testid="stRadio"] label p { margin: 0 !important; }
 
-/* ── KPI cards ────────────────────────────────────────────── */
+/* ── KPI cards — FIXED: equal height via flex ─────────────── */
+.kpi-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;      /* all cards stretch to same height */
+  margin-bottom: 1.2rem;
+}
 .kpi-card {
+  flex: 1;
+  min-height: 110px;         /* enforce minimum height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   background: linear-gradient(135deg, #0D1A2D, #152035);
   border: 1px solid #1E3A5F;
   border-top: 3px solid #4A90D9;
-  border-radius: 10px; padding: 1.2rem; text-align: center;
+  border-radius: 10px;
+  padding: 1.2rem;
+  text-align: center;
   transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(74,144,217,0.2); }
 .kpi-card.green  { border-top-color: #27AE60; }
@@ -111,9 +87,46 @@ div[data-testid="stRadio"] label p { margin: 0 !important; }
 .kpi-card.red    { border-top-color: #E74C3C; }
 .kpi-card.blue   { border-top-color: #4A90D9; }
 .kpi-card.purple { border-top-color: #7B68EE; }
-.kpi-val   { font-size: 2rem;  font-weight: 800; color: #4A90D9; letter-spacing: -1px; }
-.kpi-lbl   { font-size: 0.72rem; color: #6B8CAE; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
-.kpi-delta { font-size: 0.68rem; color: #27AE60; margin-top: 3px; }
+.kpi-val   { font-size: 2rem; font-weight: 800; color: #4A90D9; letter-spacing: -1px; }
+.kpi-lbl   { font-size: 0.72rem; color: #6B8CAE; margin-top: 4px;
+             text-transform: uppercase; letter-spacing: 1px; }
+.kpi-delta { font-size: 0.68rem; color: #27AE60; margin-top: 3px; min-height: 16px; }
+
+/* ── Action boxes — FIXED: equal height ───────────────────── */
+.action-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 1.2rem;
+}
+.action-box {
+  flex: 1;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+}
+.action-box.red {
+  background: #1A0808; border: 1px solid #5C1515; border-left: 3px solid #E74C3C;
+}
+.action-box.yellow {
+  background: #1A1408; border: 1px solid #5C4A15; border-left: 3px solid #F39C12;
+}
+.action-box.blue {
+  background: #081525; border: 1px solid #1E3A6A; border-left: 3px solid #4A90D9;
+}
+.action-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; margin-bottom: 8px;
+}
+.action-box.red    .action-label { color: #E74C3C; }
+.action-box.yellow .action-label { color: #F39C12; }
+.action-box.blue   .action-label { color: #4A90D9; }
+.action-body { color: #A8C0E8; font-size: 0.8rem; line-height: 1.6; }
+.action-body b { color: #E8F0FE; }
 
 /* ── Insight box ──────────────────────────────────────────── */
 .insight-box {
@@ -142,38 +155,6 @@ div[data-testid="stRadio"] label p { margin: 0 !important; }
 }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-/* ── Main header block ────────────────────────────────────── */
-.main-header {
-  background: linear-gradient(135deg, #0F2444 0%, #1B3A6B 50%, #0F2444 100%);
-  padding: 1.6rem 2rem; border-radius: 10px;
-  border: 1px solid #2E5090;
-  box-shadow: 0 4px 24px rgba(74,144,217,0.15);
-  margin-bottom: 1.2rem; position: relative; overflow: hidden;
-}
-.main-header::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:3px;
-  background: linear-gradient(90deg, #4A90D9, #7B68EE, #4A90D9);
-}
-
-/* ── Sidebar elements ─────────────────────────────────────── */
-.sidebar-metric {
-  background: #0D1A2D; border: 1px solid #1E3A5F;
-  border-radius: 8px; padding: 8px 12px; margin: 4px 0;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.sidebar-metric-val { color: #4A90D9; font-weight: 600; font-size: 0.85rem; }
-.sidebar-alert {
-  background: #1A0A0A; border: 1px solid #5C1515;
-  border-left: 3px solid #E74C3C; border-radius: 6px;
-  padding: 7px 10px; margin: 4px 0; font-size: 0.75rem; color: #E88080;
-}
-.sidebar-section-label {
-  color: #4A90D9; font-weight: 700; font-size: 0.68rem;
-  text-transform: uppercase; letter-spacing: 1.5px;
-  margin-bottom: 8px; padding-left: 8px;
-  border-left: 3px solid #4A90D9;
-}
-
 /* ── Dataframe / metrics ──────────────────────────────────── */
 [data-testid="stDataFrame"] { border-radius: 8px; overflow: hidden; }
 div[data-testid="metric-container"] {
@@ -191,17 +172,10 @@ div[aria-selected="true"]    { color: #4A90D9 !important; border-bottom-color: #
 .js-plotly-plot { border-radius: 10px; overflow: hidden; }
 
 /* ── Equal-height columns ────────────────────────────────── */
-[data-testid="stHorizontalBlock"] {
-  align-items: stretch !important;
-}
-[data-testid="column"] {
-  display: flex !important;
-  flex-direction: column !important;
-}
+[data-testid="stHorizontalBlock"] { align-items: stretch !important; }
+[data-testid="column"] { display: flex !important; flex-direction: column !important; }
 [data-testid="column"] > div:first-child {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important;
+  display: flex !important; flex-direction: column !important; flex: 1 !important;
 }
 
 /* ── Scrollbar ───────────────────────────────────────────── */
@@ -255,16 +229,18 @@ sensor_df["index"] = sensor_df["index"].astype(int).clip(0, 206)
 horizon_metrics_df, sensor_horizon_df = build_model_diagnostics(predictions, targets)
 
 # ---------------------------------------------------------------------
-# DYNAMIC STATS  — computed once from loaded data, used throughout UI
+# DYNAMIC STATS
 # ---------------------------------------------------------------------
 def _compute_dashboard_stats(results_df, sensor_df, X_test, predictions, targets):
     stats = {}
-
-    # Model MAE/RMSE per horizon from results_df
     _res = results_df.copy()
+
     def _fmt(h):
         k = str(h).replace(" ", "").lower()
-        return "5min" if k in {"5min","5m","5"} else "15min" if k in {"15min","15m","15"} else "30min" if k in {"30min","30m","30"} else str(h)
+        return "5min" if k in {"5min","5m","5"} else \
+               "15min" if k in {"15min","15m","15"} else \
+               "30min" if k in {"30min","30m","30"} else str(h)
+
     _res["_h"] = _res["Horizon"].apply(_fmt)
     _tgcn = _res[_res["Model"] == "T-GCN-V3"].set_index("_h")
     _rf   = _res[_res["Model"] == "RandomForest"].set_index("_h")
@@ -274,38 +250,31 @@ def _compute_dashboard_stats(results_df, sensor_df, X_test, predictions, targets
             stats[f"tgcn_mae_{h}"]  = float(_tgcn.loc[h, "MAE"])
             stats[f"tgcn_rmse_{h}"] = float(_tgcn.loc[h, "RMSE"])
         if h in _rf.index:
-            stats[f"rf_mae_{h}"]    = float(_rf.loc[h, "MAE"])
+            stats[f"rf_mae_{h}"] = float(_rf.loc[h, "MAE"])
 
-    # Improvement % T-GCN vs RF per horizon
     for h in ["5min", "15min", "30min"]:
         if f"tgcn_mae_{h}" in stats and f"rf_mae_{h}" in stats:
             imp = (stats[f"rf_mae_{h}"] - stats[f"tgcn_mae_{h}"]) / stats[f"rf_mae_{h}"] * 100
             stats[f"imp_{h}"] = imp
 
-    # Best model per horizon
     stats["best_5min"]  = "T-GCN" if stats.get("imp_5min",  0) > 0 else "RF"
     stats["best_15min"] = "T-GCN" if stats.get("imp_15min", 0) > 0 else "RF"
     stats["best_30min"] = "T-GCN" if stats.get("imp_30min", 0) > 0 else "RF"
 
-    # Congestion stats from sensor_df
     critical_mask = sensor_df["congestion_level"] == "Critical"
     stats["n_critical"]      = int(critical_mask.sum())
     stats["congestion_rate"] = float(sensor_df["congestion_rate"].mean()) * 100
 
-    # Sensors with 100% congestion
     fully_congested = sensor_df[sensor_df["congestion_rate"] >= 0.999]["index"].tolist()
     stats["fully_congested"] = fully_congested
 
-    # Hardest-to-predict sensor
     worst_idx = int(sensor_df.loc[sensor_df["prediction_mae"].idxmax(), "index"])
     worst_mae = float(sensor_df["prediction_mae"].max())
     stats["worst_sensor_idx"] = worst_idx
     stats["worst_sensor_mae"] = worst_mae
 
-    # Overall speed and congested %
-    stats["overall_speed"]  = float(X_test[:, :, -1].mean())
-    stats["congested_pct"]  = float((X_test[:, :, -1] < -0.3).mean() * 100)
-
+    stats["overall_speed"] = float(X_test[:, :, -1].mean())
+    stats["congested_pct"] = float((X_test[:, :, -1] < -0.3).mean() * 100)
     return stats
 
 _ds = _compute_dashboard_stats(results_df, sensor_df, X_test, predictions, targets)
@@ -329,14 +298,22 @@ def dark_layout(title="", height=350, legend_bottom=True):
 
 def format_horizon_for_table(h: str) -> str:
     key = str(h).replace(" ", "").lower()
-    if key in {"5min", "5m", "5"}:   return "5min"
-    if key in {"15min", "15m", "15"}: return "15min"
-    if key in {"30min", "30m", "30"}: return "30min"
+    if key in {"5min","5m","5"}:    return "5min"
+    if key in {"15min","15m","15"}: return "15min"
+    if key in {"30min","30m","30"}: return "30min"
     return str(h)
 
 def compute_snapshot_label(snapshot_idx: int) -> str:
     mins = snapshot_idx * 5
     return f"{(mins // 60) % 24:02d}:{mins % 60:02d}"
+
+def get_day_type(snapshot_idx: int) -> str:
+    """Estimate weekday vs weekend based on snapshot position in test set.
+    Test set starts after ~70% of data. Assuming data starts Monday.
+    288 snapshots per day, 5 weekdays + 2 weekend days per week."""
+    total_day = (snapshot_idx + int(0.7 * 34255)) // 288
+    day_of_week = total_day % 7   # 0=Mon … 6=Sun
+    return "Weekend" if day_of_week >= 5 else "Weekday"
 
 # ---------------------------------------------------------------------
 # SESSION STATE
@@ -347,35 +324,8 @@ if "snapshot_idx" not in st.session_state:
     st.session_state.snapshot_idx = 100
 
 # ---------------------------------------------------------------------
-# UNIFIED HEADER + NAV  (rendered once, above all pages)
+# HEADER + NAV
 # ---------------------------------------------------------------------
-
-# Build stats and alert strings for the header
-_fc_badges_hdr = "  ".join(
-    f"<span style='background:#2D0F0F;border:1px solid #8B2020;border-left:2px solid #E74C3C;"
-    f"border-radius:3px;padding:2px 8px;font-size:0.7rem;color:#E88080'>S{i} 100% congested</span>"
-    for i in _ds["fully_congested"]
-)
-_high_sensors = sensor_df[
-    (sensor_df["congestion_level"] == "High") & (sensor_df["congestion_rate"] >= 0.85)
-].sort_values("congestion_rate", ascending=False).head(1)
-_high_badge_hdr = ""
-if not _high_sensors.empty:
-    _hs = _high_sensors.iloc[0]
-    _high_badge_hdr = (
-        f"<span style='background:#2D1E08;border:1px solid #8B5E20;border-left:2px solid #F39C12;"
-        f"border-radius:3px;padding:2px 8px;font-size:0.7rem;color:#F0C070'>"
-        f"S{int(_hs['index'])} {_hs['congestion_rate']:.0%} congested</span>"
-    )
-_all_alerts = (_fc_badges_hdr + ("  " if _fc_badges_hdr and _high_badge_hdr else "") + _high_badge_hdr)
-
-_stat_pills = "  ·  ".join([
-    f"<span style='color:#E8F0FE;font-weight:600'>207</span> <span style='color:#4A6A8A'>sensors</span>",
-    f"<span style='color:#E8F0FE;font-weight:600'>{_ds['congested_pct']:.1f}%</span> <span style='color:#4A6A8A'>congested</span>",
-    f"<span style='color:#E8F0FE;font-weight:600'>{_ds['n_critical']}</span> <span style='color:#4A6A8A'>critical zones</span>",
-    f"<span style='color:#E8F0FE;font-weight:600'>{_ds.get('tgcn_mae_5min',0):.3f}</span> <span style='color:#4A6A8A'>MAE 5-min</span>",
-])
-
 st.markdown(f"""
 <div style='background:linear-gradient(135deg,#0F2444 0%,#1B3A6B 50%,#0F2444 100%);
             border:1px solid #2E5090;border-radius:10px;padding:0.9rem 1.6rem;
@@ -402,7 +352,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Pill nav
 NAV_OPTIONS = [
     "Problem & Overview",
     "Live Traffic Network",
@@ -420,99 +369,96 @@ NAV_MAP = {
 NAV_MAP_INV = {v: k for k, v in NAV_MAP.items()}
 
 selected_label = st.radio(
-    "",
-    NAV_OPTIONS,
+    "Navigation", NAV_OPTIONS,
     index=NAV_OPTIONS.index(NAV_MAP_INV.get(st.session_state.page, "Problem & Overview")),
-    horizontal=True,
-    label_visibility="collapsed",
-    key="main_nav",
+    horizontal=True, label_visibility="collapsed", key="main_nav",
 )
 st.session_state.page = NAV_MAP[selected_label]
-
 st.markdown("<div style='margin-bottom:24px'></div>", unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------
-# PAGE 1 — OVERVIEW
-# ---------------------------------------------------------------------
+# =====================================================================
+# PAGE 1 — OVERVIEW  (redesigned 3-zone layout)
+# =====================================================================
 if st.session_state.page == "Overview":
+
+    # ── ZONE 1: 5 KPI cards — equal height flex row ────────────────────
     kpis = [
-        ("207",
-         "Highway Sensors", "LA highway network", "blue"),
-        (f"{_ds.get('tgcn_mae_5min', 0):.3f}",
-         "MAE at 5-min", f"Best: {_ds['best_5min']}", "green"),
-        ("0.672",
-         "Spatial Correlation", "Justifies graph model", "purple"),
-        (str(_ds["n_critical"]),
-         "Critical Zones", "Require immediate action", "red"),
-        (f"{_ds['congestion_rate']:.1f}%",
-         "Congestion Rate", "Of all observations", "yellow"),
+        ("207",                                 "Highway Sensors",    "LA highway network",        "blue",   "#4A90D9"),
+        (f"{_ds.get('tgcn_mae_5min',0):.3f}",  "MAE at 5-min",       f"Best: {_ds['best_5min']}",  "green",  "#27AE60"),
+        ("0.672",                               "Spatial Correlation","Justifies graph model",      "purple", "#7B68EE"),
+        (str(_ds["n_critical"]),                "Critical Zones",     "Require immediate action",   "red",    "#E74C3C"),
+        (f"{_ds['congestion_rate']:.1f}%",      "Congestion Rate",    "Of all observations",        "yellow", "#F39C12"),
     ]
-    cols = st.columns(5)
-    for col, (val, lbl, sub, accent) in zip(cols, kpis):
-        with col:
-            st.markdown(f"""
-            <div class='kpi-card {accent}'>
-              <div class='kpi-val'>{val}</div>
-              <div class='kpi-lbl'>{lbl}</div>
-              <div class='kpi-delta'>{sub}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    cards_html = "".join(
+        f"<div class='kpi-card {accent}'>"
+        f"  <div class='kpi-val' style='color:{color}'>{val}</div>"
+        f"  <div class='kpi-lbl'>{lbl}</div>"
+        f"  <div class='kpi-delta'>{sub}</div>"
+        f"</div>"
+        for val, lbl, sub, accent, color in kpis
+    )
+    st.markdown(f"<div class='kpi-row'>{cards_html}</div>", unsafe_allow_html=True)
 
-    st.markdown("<div style='margin: 1.2rem 0; border-bottom: 1px solid #1E2D45'></div>", unsafe_allow_html=True)
+    # thin divider
+    st.markdown("<div style='border-bottom:1px solid #1E2D45;margin-bottom:1rem'></div>",
+                unsafe_allow_html=True)
 
-    # ── ROW 1: Why Graph ML? (left) | T-GCN Performance + stats (right) ──
-    col1, col2 = st.columns([3, 2])
+    # ── ZONE 2: Chart (left, wide) | Metrics panel (right, narrow) ─────
+    col_chart, col_metrics = st.columns([3, 2], gap="medium")
 
-    with col1:
-        st.markdown("### Why Graph ML?")
+    # — Left: insight text + MAE comparison chart ——————————————
+    with col_chart:
         st.markdown("""
-        <div class='insight-box'>
-        Standard models treat each sensor independently. But LA highway sensors are
-        <b>spatially connected</b> — a slowdown at one sensor spreads to neighbours
-        within minutes. Our T-GCN model captures this using the road network graph
-        (1,722 connections between 207 sensors).
+        <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-left:3px solid #4A90D9;
+                    border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:10px;color:#A8C0E8;
+                    font-size:0.82rem;line-height:1.6'>
+          <span style='color:#4A90D9;font-weight:700'>Why Graph ML?</span> &nbsp;
+          Standard models treat each sensor independently. But LA highway sensors are
+          <b style='color:#E8F0FE'>spatially connected</b> — a slowdown at one sensor
+          spreads to neighbours within minutes. Our T-GCN model captures this using the
+          road network graph (<b style='color:#E8F0FE'>1,722 connections</b> between
+          <b style='color:#E8F0FE'>207 sensors</b>).
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<div style='margin-top:12px'></div>", unsafe_allow_html=True)
-
-        results_df_local = results_df[
+        results_local = results_df[
             results_df["Model"].isin(["Persistence", "RandomForest", "T-GCN-V3"])
         ].copy()
-        results_df_local["Horizon"] = results_df_local["Horizon"].apply(format_horizon_for_table)
-
+        results_local["Horizon"] = results_local["Horizon"].apply(format_horizon_for_table)
         horizon_order = ["5min", "15min", "30min"]
         color_map = {"Persistence": "#3498DB", "RandomForest": "#27AE60", "T-GCN-V3": "#E74C3C"}
-        width_map = {"Persistence": 1.5, "RandomForest": 1.5, "T-GCN-V3": 3}
+        width_map = {"Persistence": 1.5,       "RandomForest": 1.5,       "T-GCN-V3": 3}
 
-        rf_d = (results_df_local[results_df_local["Model"] == "RandomForest"]
-                .set_index("Horizon").reindex(horizon_order).reset_index())
-        tgcn_d = (results_df_local[results_df_local["Model"] == "T-GCN-V3"]
-                  .set_index("Horizon").reindex(horizon_order).reset_index())
+        rf_d   = results_local[results_local["Model"] == "RandomForest"].set_index("Horizon").reindex(horizon_order).reset_index()
+        tgcn_d = results_local[results_local["Model"] == "T-GCN-V3"].set_index("Horizon").reindex(horizon_order).reset_index()
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
+        fig_mae = go.Figure()
+        # shaded gap between RF and T-GCN
+        fig_mae.add_trace(go.Scatter(
             x=rf_d["Horizon"].tolist() + rf_d["Horizon"].tolist()[::-1],
             y=rf_d["MAE"].tolist() + tgcn_d["MAE"].tolist()[::-1],
-            fill="toself", fillcolor="rgba(39,174,96,0.10)",
+            fill="toself", fillcolor="rgba(39,174,96,0.12)",
             line=dict(width=0), showlegend=True,
-            name="T-GCN saves (shaded gap)", hoverinfo="skip",
+            name="T-GCN advantage (shaded)", hoverinfo="skip",
         ))
         for model in ["Persistence", "RandomForest", "T-GCN-V3"]:
-            d = (results_df_local[results_df_local["Model"] == model]
-                 .set_index("Horizon").reindex(horizon_order).reset_index())
-            fig.add_trace(go.Scatter(
+            d = results_local[results_local["Model"] == model].set_index("Horizon").reindex(horizon_order).reset_index()
+            fig_mae.add_trace(go.Scatter(
                 x=d["Horizon"], y=d["MAE"],
                 name="T-GCN (ours)" if model == "T-GCN-V3" else model,
                 mode="lines+markers",
                 line=dict(color=color_map[model], width=width_map[model]),
-                marker=dict(size=9 if model == "T-GCN-V3" else 6),
+                marker=dict(size=10 if model == "T-GCN-V3" else 7,
+                            symbol="diamond" if model == "T-GCN-V3" else "circle"),
             ))
-        fig.update_layout(**dark_layout("MAE by Horizon — lower is better · shaded gap = T-GCN advantage", height=320))
-        fig.update_yaxes(title_text="MAE")
-        st.plotly_chart(fig, use_container_width=True)
+        fig_mae.update_layout(**dark_layout(
+            "Model Comparison: MAE by Horizon — lower is better", height=340))
+        fig_mae.update_yaxes(title_text="MAE (normalized units)")
+        fig_mae.update_xaxes(title_text="Forecast Horizon")
+        st.plotly_chart(fig_mae, use_container_width=True)
 
-    with col2:
+    # — Right: performance table + 4 stat mini-cards ——————————
+    with col_metrics:
         _mae5  = _ds.get("tgcn_mae_5min",  0)
         _mae15 = _ds.get("tgcn_mae_15min", 0)
         _mae30 = _ds.get("tgcn_mae_30min", 0)
@@ -520,17 +466,17 @@ if st.session_state.page == "Overview":
         _imp15 = _ds.get("imp_15min", 0)
         _imp30 = _ds.get("imp_30min", 0)
 
-        def _imp_badge(imp):
-            color = "#27AE60" if imp > 0 else "#F39C12"
-            return (f"<span style='background:{color}22;border:1px solid {color}55;border-radius:4px;"
-                    f"padding:1px 8px;color:{color};font-size:0.7rem;font-weight:700'>"
-                    f"{'+'if imp>0 else ''}{imp:.1f}% vs RF</span>")
+        def _badge(imp):
+            c = "#27AE60" if imp > 0 else "#F39C12"
+            return (f"<span style='background:{c}22;border:1px solid {c}55;border-radius:4px;"
+                    f"padding:2px 8px;color:{c};font-size:0.7rem;font-weight:700'>"
+                    f"{'+'if imp>0 else ''}{imp:.1f}%</span>")
 
-        horizon_rows_html = "".join(
+        perf_rows = "".join(
             f"<tr style='border-bottom:1px solid #1A2D45'>"
-            f"<td style='padding:8px 10px 8px 0;color:#7A9CC0;font-size:0.75rem;white-space:nowrap'>{h}</td>"
-            f"<td style='padding:8px 6px;color:#4A90D9;font-size:1rem;font-weight:800'>{mae:.3f}</td>"
-            f"<td style='padding:8px 0 8px 6px;text-align:right'>{_imp_badge(imp)}</td>"
+            f"<td style='padding:10px 10px 10px 0;color:#7A9CC0;font-size:0.78rem'>{h}</td>"
+            f"<td style='padding:10px 8px;color:#4A90D9;font-size:1.05rem;font-weight:800'>{mae:.3f}</td>"
+            f"<td style='padding:10px 0;text-align:right'>{_badge(imp)}</td>"
             f"</tr>"
             for h, mae, imp in [
                 ("5-min",  _mae5,  _imp5),
@@ -539,107 +485,134 @@ if st.session_state.page == "Overview":
             ]
         )
 
-        _fc_ids = _ds["fully_congested"]
-        _congestion_card = (
-            f"<div style='background:#1A0A0A;border:1px solid #5C1515;border-left:3px solid #E74C3C;"
-            f"border-radius:8px;padding:8px 12px;flex:1'>"
-            f"<div style='color:#E74C3C;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px'>Always Congested</div>"
-            f"<div style='color:#E88080;font-size:0.95rem;font-weight:700;margin-top:2px'>"
-            + ", ".join(f"S{i}" for i in _fc_ids) +
-            f"</div><div style='color:#6B8CAE;font-size:0.68rem'>100% congestion rate</div></div>"
-            if _fc_ids else
-            f"<div style='background:#0A1E0F;border:1px solid #1A5C2A;border-left:3px solid #27AE60;"
-            f"border-radius:8px;padding:8px 12px;flex:1'>"
-            f"<div style='color:#27AE60;font-size:0.68rem;font-weight:600'>No chronic congestion</div>"
-            f"<div style='color:#6B8CAE;font-size:0.68rem'>All sensors clear</div></div>"
-        )
+        _fc_ids   = _ds["fully_congested"]
+        _fc_label = ", ".join(f"S{i}" for i in _fc_ids) if _fc_ids else "None"
+        _fc_color = "#E74C3C" if _fc_ids else "#27AE60"
+        _fc_bg    = "#1A0A0A" if _fc_ids else "#0A1E0F"
+        _fc_border= "#5C1515" if _fc_ids else "#1A5C2A"
 
-        st.markdown(f"""
-        <div style='margin-bottom:8px'>
-          <div style='color:#6B8CAE;font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;
-                      margin-bottom:6px;font-weight:600'>T-GCN Model Performance</div>
-          <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:8px;padding:6px 14px'>
-            <table style='width:100%;border-collapse:collapse'>
-              <tr style='border-bottom:1px solid #1E3A5F'>
-                <th style='padding:6px 10px 6px 0;color:#4A6A8A;font-size:0.68rem;font-weight:600;
-                           text-align:left;text-transform:uppercase'>Horizon</th>
-                <th style='padding:6px 6px;color:#4A6A8A;font-size:0.68rem;font-weight:600;
-                           text-align:left;text-transform:uppercase'>MAE</th>
-                <th style='padding:6px 0 6px 6px;color:#4A6A8A;font-size:0.68rem;font-weight:600;
-                           text-align:right;text-transform:uppercase'>vs RF</th>
-              </tr>
-              {horizon_rows_html}
-            </table>
-          </div>
-        </div>
-        <div style='display:flex;gap:8px'>
-          <div style='background:#0A1525;border:1px solid #1E3A6A;border-left:3px solid #4A90D9;
-                      border-radius:8px;padding:8px 12px;flex:1'>
-            <div style='color:#4A90D9;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px'>Spatial Correlation</div>
-            <div style='color:#E8F0FE;font-size:0.95rem;font-weight:700;margin-top:2px'>r = 0.672</div>
-            <div style='color:#6B8CAE;font-size:0.68rem'>Graph structure validated</div>
-          </div>
-          {_congestion_card}
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""<div style='display:flex;flex-direction:column;gap:10px'>
 
-    # ── ROW 2: How The System Works (left) | Training Summary (right) ──
-    st.markdown("<div style='margin: 1.2rem 0; border-bottom: 1px solid #1E2D45'></div>", unsafe_allow_html=True)
-    col3, col4 = st.columns([3, 2])
+<!-- Performance table -->
+<div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:10px;padding:12px 16px'>
+    <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:1.2px;
+                            font-weight:700;margin-bottom:4px'>T-GCN vs Random Forest</div>
+    <table style='width:100%;border-collapse:collapse'>
+        <tr style='border-bottom:1px solid #1E3A5F'>
+            <th style='padding:6px 10px 6px 0;color:#4A6A8A;font-size:0.65rem;font-weight:600;
+                                 text-align:left;text-transform:uppercase'>Horizon</th>
+            <th style='padding:6px 8px;color:#4A6A8A;font-size:0.65rem;font-weight:600;
+                                 text-align:left;text-transform:uppercase'>MAE</th>
+            <th style='padding:6px 0;color:#4A6A8A;font-size:0.65rem;font-weight:600;
+                                 text-align:right;text-transform:uppercase'>vs RF</th>
+        </tr>
+        {perf_rows}
+    </table>
+</div>
 
-    with col3:
-        st.markdown("<div class='section-header'>How The System Works</div>", unsafe_allow_html=True)
-        steps = [
-            ("1. Collect",
-             "207 highway sensors report traffic speeds every 5 minutes. Each reading captures speed + time of day for that road location.",
-             "5-min intervals", "#4A90D9"),
-            ("2. Predict",
-             "T-GCN processes the last 60 minutes of data across all 207 connected sensors simultaneously, predicting the next 5, 15, and 30 minutes.",
-             "12 time steps input", "#7B68EE"),
-            ("3. Act",
-             "Operations team sees predicted congestion zones 15 minutes ahead. Drivers are repositioned BEFORE demand spikes — not after.",
-             "15-min lookahead", "#27AE60"),
-        ]
-        steps_html = "".join(f"""
-        <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-left:3px solid {color};
-                    border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;
-                    align-items:center;gap:14px'>
-          <div style='flex-shrink:0;background:{color}22;border:1px solid {color}55;border-radius:6px;
-                      padding:6px 11px;color:{color};font-size:0.72rem;font-weight:700;letter-spacing:0.5px;
-                      white-space:nowrap;text-align:center'>{title}</div>
-          <div style='flex:1'>
-            <div style='color:#A8C0E8;font-size:0.8rem;line-height:1.55'>{desc}</div>
-            <div style='color:{color};font-size:0.7rem;font-weight:600;margin-top:5px'>{stat}</div>
-          </div>
-        </div>""" for title, desc, stat, color in steps)
-        st.markdown(steps_html, unsafe_allow_html=True)
+<!-- 2-column mini stat cards -->
+<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px'>
 
-    with col4:
-        st.markdown("<div style='color:#6B8CAE;font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600'>Training Summary</div>", unsafe_allow_html=True)
+    <div style='background:#0A1525;border:1px solid #1E3A6A;border-top:2px solid #4A90D9;
+                            border-radius:8px;padding:10px 12px'>
+        <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Spatial r</div>
+        <div style='color:#4A90D9;font-size:1.3rem;font-weight:800;margin:4px 0'>0.672</div>
+        <div style='color:#6B8CAE;font-size:0.65rem'>GNN justified</div>
+    </div>
+
+    <div style='background:{_fc_bg};border:1px solid {_fc_border};border-top:2px solid {_fc_color};
+                            border-radius:8px;padding:10px 12px'>
+        <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Always congested</div>
+        <div style='color:{_fc_color};font-size:1.1rem;font-weight:800;margin:4px 0'>{_fc_label}</div>
+        <div style='color:#6B8CAE;font-size:0.65rem'>100% congestion rate</div>
+    </div>
+
+    <div style='background:#0A1E0F;border:1px solid #1A5C2A;border-top:2px solid #27AE60;
+                            border-radius:8px;padding:10px 12px'>
+        <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Parameters</div>
+        <div style='color:#27AE60;font-size:1.3rem;font-weight:800;margin:4px 0'>27,750</div>
+        <div style='color:#6B8CAE;font-size:0.65rem'>Lightweight model</div>
+    </div>
+
+    <div style='background:#1A1408;border:1px solid #5C4A15;border-top:2px solid #F39C12;
+                            border-radius:8px;padding:10px 12px'>
+        <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.8px'>Training time</div>
+        <div style='color:#F39C12;font-size:1.1rem;font-weight:800;margin:4px 0'>16 min</div>
+        <div style='color:#6B8CAE;font-size:0.65rem'>RTX 3060 GPU</div>
+    </div>
+
+</div><!-- end grid -->
+
+</div><!-- end flex column -->""", unsafe_allow_html=True)
+
+    # ── ZONE 3: How It Works — 3 horizontal cards + Training Summary ───
+    st.markdown("<div style='border-bottom:1px solid #1E2D45;margin:1.2rem 0'></div>",
+                unsafe_allow_html=True)
+
+    # Section label
+    st.markdown(
+        "<div style='color:#E8F0FE;font-size:0.9rem;font-weight:700;margin-bottom:10px'>"
+        "How The System Works</div>",
+        unsafe_allow_html=True,
+    )
+
+    # 3 steps as horizontal equal columns + 1 narrow training summary column
+    c1, c2, c3, c4 = st.columns([1, 1, 1, 1], gap="small")
+
+    step_data = [
+        (c1, "1. Collect", "🔵",
+         "207 highway sensors report traffic speeds every 5 minutes. Each reading captures speed + time of day.",
+         "5-min intervals", "#4A90D9"),
+        (c2, "2. Predict", "🟣",
+         "T-GCN processes the last 60 minutes across all 207 connected sensors simultaneously — 12 timesteps, 1,722 road edges.",
+         "12 time steps · K=2 hops", "#7B68EE"),
+        (c3, "3. Act", "🟢",
+         "Operations team sees predicted congestion zones 15 minutes ahead. Drivers repositioned BEFORE demand spikes.",
+         "15-min lookahead window", "#27AE60"),
+    ]
+
+    for col, title, icon, desc, stat, color in step_data:
+        with col:
+            st.markdown(f"""
+            <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-top:3px solid {color};
+                        border-radius:10px;padding:14px 14px;height:100%;box-sizing:border-box'>
+              <div style='color:{color};font-size:0.75rem;font-weight:700;text-transform:uppercase;
+                          letter-spacing:0.8px;margin-bottom:8px'>{title}</div>
+              <div style='color:#A8C0E8;font-size:0.78rem;line-height:1.55;margin-bottom:10px'>{desc}</div>
+              <div style='background:{color}18;border:1px solid {color}44;border-radius:4px;
+                          padding:4px 8px;color:{color};font-size:0.68rem;font-weight:600;
+                          display:inline-block'>{stat}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    with c4:
         training_rows = [
             ("Architecture", "T-GCN (GConvGRU)"),
             ("Parameters",   "27,750"),
-            ("Training time","16 min · RTX 3060"),
             ("Best epoch",   "10 / 30"),
             ("Loss fn",      "Huber Loss"),
+            ("Optimizer",    "Adam + Cosine LR"),
         ]
         rows_html = "".join(
             f"<tr style='border-bottom:1px solid #1A2D45'>"
-            f"<td style='color:#6B8CAE;font-size:0.75rem;padding:6px 10px 6px 0;white-space:nowrap'>{k}</td>"
-            f"<td style='color:#E8F0FE;font-size:0.75rem;font-weight:600;padding:6px 0;text-align:right'>{v}</td>"
+            f"<td style='color:#6B8CAE;font-size:0.72rem;padding:7px 10px 7px 0;white-space:nowrap'>{k}</td>"
+            f"<td style='color:#E8F0FE;font-size:0.72rem;font-weight:600;padding:7px 0;text-align:right'>{v}</td>"
             f"</tr>"
             for k, v in training_rows
         )
-        st.markdown(
-            f"<div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:8px;padding:6px 14px'>"
-            f"<table style='width:100%;border-collapse:collapse'>{rows_html}</table></div>",
-            unsafe_allow_html=True,
-        )
+        st.markdown(f"""
+        <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-top:3px solid #6B8CAE;
+                    border-radius:10px;padding:14px;height:100%;box-sizing:border-box'>
+          <div style='color:#6B8CAE;font-size:0.75rem;font-weight:700;text-transform:uppercase;
+                      letter-spacing:0.8px;margin-bottom:8px'>Training Summary</div>
+          <table style='width:100%;border-collapse:collapse'>{rows_html}</table>
+        </div>
+        """, unsafe_allow_html=True)
 
 
-# ---------------------------------------------------------------------
+# =====================================================================
 # PAGE 2 — LIVE TRAFFIC MAP
-# ---------------------------------------------------------------------
+# =====================================================================
 elif st.session_state.page == "Live Traffic Map":
     st.markdown("### Live Traffic Network — Los Angeles")
 
@@ -651,7 +624,7 @@ elif st.session_state.page == "Live Traffic Map":
 
     with col_ctrl:
         st.markdown("**Map Controls**")
-        map_mode = st.radio("Color sensors by:", ["Congestion Rate", "Prediction Error", "Mean Speed"])
+        map_mode    = st.radio("Color sensors by:", ["Congestion Rate", "Prediction Error", "Mean Speed"])
         show_labels = st.checkbox("Show sensor labels", value=False)
 
         st.markdown("---")
@@ -665,30 +638,59 @@ elif st.session_state.page == "Live Traffic Map":
         st.markdown("**Time Animation**")
         st.session_state.snapshot_idx = st.slider(
             "Test snapshot:", 0, max_snapshot, st.session_state.snapshot_idx,
-            help="Drag to animate over time",
+            help="Drag to animate traffic over time",
         )
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         with c1:
             if st.button("◀ Back"):
                 st.session_state.snapshot_idx = max(0, st.session_state.snapshot_idx - 1)
                 st.rerun()
         with c2:
+            if st.button("Reset"):
+                st.session_state.snapshot_idx = 0
+                st.rerun()
+        with c3:
             if st.button("Next ▶"):
                 st.session_state.snapshot_idx = min(max_snapshot, st.session_state.snapshot_idx + 1)
                 st.rerun()
 
-        snapshot = st.session_state.snapshot_idx
+        snapshot  = st.session_state.snapshot_idx
+        time_str  = compute_snapshot_label(snapshot)
+        day_type  = get_day_type(snapshot)
+
         st.markdown("---")
         st.write(f"Frame **{snapshot}** / {max_snapshot}")
-        st.write(f"Approx time: **{compute_snapshot_label(snapshot)}**")
+
+        # FIX: Show time AND day type for business context
+        st.markdown(
+            f"<div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:6px;"
+            f"padding:8px 12px;margin:4px 0'>"
+            f"<div style='color:#6B8CAE;font-size:0.68rem;text-transform:uppercase'>Approx Time</div>"
+            f"<div style='color:#E8F0FE;font-size:1rem;font-weight:700'>{time_str}</div>"
+            f"<div style='color:#4A90D9;font-size:0.72rem;margin-top:2px'>{day_type} pattern</div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
 
         snap_mean = float(X_test[snapshot, :, -1].mean())
+
+        # FIX: Plain-language congestion status with normalized value as secondary info
         if snap_mean > 0.1:
-            st.success(f"Free flow — {snap_mean:.3f}")
+            status_color, status_text, status_bg = "#27AE60", "Free Flow", "#0A1E0F"
         elif snap_mean > -0.2:
-            st.warning(f"Moderate — {snap_mean:.3f}")
+            status_color, status_text, status_bg = "#F39C12", "Moderate Traffic", "#1A1408"
         else:
-            st.error(f"Congested — {snap_mean:.3f}")
+            status_color, status_text, status_bg = "#E74C3C", "Heavy Congestion", "#1A0808"
+
+        st.markdown(
+            f"<div style='background:{status_bg};border:1px solid {status_color}55;"
+            f"border-left:3px solid {status_color};border-radius:6px;padding:8px 12px;margin-top:4px'>"
+            f"<div style='color:{status_color};font-size:0.75rem;font-weight:700'>{status_text}</div>"
+            f"<div style='color:#6B8CAE;font-size:0.68rem;margin-top:2px'>"
+            f"Network avg speed: {snap_mean:+.3f} (normalized)</div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
 
     def render_map(snapshot_idx: int):
         m = folium.Map(location=[34.05, -118.30], zoom_start=11, control_scale=True, tiles=None)
@@ -696,18 +698,18 @@ elif st.session_state.page == "Live Traffic Map":
             tiles="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
             attr="© Google", name="Google Streets",
             overlay=False, control=True, show=True, max_zoom=20,
-            subdomains=["mt0", "mt1", "mt2", "mt3"],
+            subdomains=["mt0","mt1","mt2","mt3"],
         ).add_to(m)
         folium.TileLayer(
             tiles="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
             attr="© Google", name="Google Satellite",
             overlay=False, control=True, show=False, max_zoom=20,
-            subdomains=["mt0", "mt1", "mt2", "mt3"],
+            subdomains=["mt0","mt1","mt2","mt3"],
         ).add_to(m)
         folium.LayerControl().add_to(m)
 
-        current_snap_speeds  = X_test[snapshot_idx, :, -1]
-        current_predictions  = predictions[snapshot_idx, :, 2]
+        current_snap_speeds = X_test[snapshot_idx, :, -1]
+        current_predictions = predictions[snapshot_idx, :, 2]
 
         for _, row in sensor_df.iterrows():
             level = str(row["congestion_level"])
@@ -721,9 +723,10 @@ elif st.session_state.page == "Live Traffic Map":
 
             if map_mode == "Congestion Rate":
                 cong = float(row["congestion_rate"])
-                fc = "#C0392B" if cong > 0.6 else "#E74C3C" if cong > 0.35 else "#F39C12" if cong > 0.2 else "#F7DC6F"
+                # FIX: Colors match legend exactly — same thresholds as legend
+                fc = "#8B0000" if cong > 0.6 else "#E74C3C" if cong > 0.35 else "#F39C12" if cong > 0.2 else "#F7DC6F"
                 radius = max(5, cong * 22)
-                popup_extra = f"Congestion: {cong:.1%}"
+                popup_extra = f"Congestion rate: {cong:.1%}"
             elif map_mode == "Prediction Error":
                 mae  = float(row["prediction_mae"])
                 norm = max(0, min(1, (mae - 0.12) / (0.35 - 0.12)))
@@ -731,29 +734,29 @@ elif st.session_state.page == "Live Traffic Map":
                 g_val = int((1 - norm) * 180 + 20)
                 fc = f"#{r_val:02x}{g_val:02x}30"
                 radius = max(5, mae * 28)
-                popup_extra = f"Pred MAE: {mae:.4f}"
+                popup_extra = f"Prediction MAE (15min): {mae:.4f}"
             else:
                 spd = float(current_snap_speeds[idx])
                 fc = "#27AE60" if spd > 0.1 else "#F39C12" if spd > -0.2 else "#E74C3C"
                 radius = 7
-                popup_extra = f"Current speed: {spd:.3f}"
+                popup_extra = f"Current normalized speed: {spd:+.3f}"
 
-            pred_15 = float(current_predictions[idx])
-            popup_html = f"""
-            <div style='font-family:Arial;font-size:12px;min-width:170px;color:#111'>
+            pred_15     = float(current_predictions[idx])
+            popup_html  = f"""
+            <div style='font-family:Arial;font-size:12px;min-width:180px;color:#111'>
               <b style='color:#1B3A6B'>Sensor {idx}</b><br>
               <hr style='margin:4px 0'>
               {popup_extra}<br>
-              <b>15-min prediction: {pred_15:.3f}</b><br>
-              Level: <b>{level}</b><br>
-              Lat: {row['latitude']:.4f}, Lon: {row['longitude']:.4f}
+              <b>15-min prediction: {pred_15:+.3f}</b><br>
+              Congestion level: <b>{level}</b><br>
+              Location: {row['latitude']:.4f}°N, {abs(row['longitude']):.4f}°W
             </div>"""
             folium.CircleMarker(
                 location=[row["latitude"], row["longitude"]],
                 radius=radius, color="white", weight=0.5,
                 fill=True, fill_color=fc, fill_opacity=0.85,
-                popup=folium.Popup(popup_html, max_width=220),
-                tooltip=f"S{idx}" if show_labels else f"S{idx} | {level} | Click for details",
+                popup=folium.Popup(popup_html, max_width=240),
+                tooltip=f"S{idx}: {level}" if show_labels else f"S{idx} | {level} | Click for details",
             ).add_to(m)
         return m
 
@@ -762,15 +765,26 @@ elif st.session_state.page == "Live Traffic Map":
         st_folium(current_map, height=560, use_container_width=True,
                   key=f"map-{st.session_state.snapshot_idx}-{map_mode}")
 
+        # FIX: Legend colors now match exactly what is rendered on the map
         if map_mode == "Congestion Rate":
-            legend_items = [("#C0392B","Critical > 60%"),("#E74C3C","High 35–60%"),
-                            ("#F39C12","Moderate 20–35%"),("#F7DC6F","Low < 20%")]
+            legend_items = [
+                ("#8B0000", "Critical > 60%"),
+                ("#E74C3C", "High 35–60%"),
+                ("#F39C12", "Moderate 20–35%"),
+                ("#F7DC6F", "Low < 20%"),
+            ]
         elif map_mode == "Prediction Error":
-            legend_items = [("#c83050","High error MAE > 0.30"),
-                            ("#e07030","Medium 0.20–0.30"),("#b0b030","Low < 0.20")]
+            legend_items = [
+                ("#c83050", "High error  MAE > 0.30"),
+                ("#e07030", "Medium  0.20–0.30"),
+                ("#b0b030", "Low  MAE < 0.20"),
+            ]
         else:
-            legend_items = [("#27AE60","Free flow > 0.1"),
-                            ("#F39C12","Moderate −0.2 to 0.1"),("#E74C3C","Congested < −0.2")]
+            legend_items = [
+                ("#27AE60", "Free flow  speed > +0.1"),
+                ("#F39C12", "Moderate  −0.2 to +0.1"),
+                ("#E74C3C", "Congested  speed < −0.2"),
+            ]
 
         dots = "".join(
             f"<div style='display:flex;align-items:center;gap:8px;margin:3px 0'>"
@@ -785,11 +799,12 @@ elif st.session_state.page == "Live Traffic Map":
             f"letter-spacing:1px;margin-bottom:6px'>{map_mode}</div>{dots}</div>",
             unsafe_allow_html=True,
         )
-        st.caption("Click a sensor for details. Use the slider or step buttons to animate over time.")
+        st.caption("Click a sensor for details. Use the slider or Back / Next buttons to animate over time.")
 
-# ---------------------------------------------------------------------
+
+# =====================================================================
 # PAGE 3 — FORECAST EXPLORER
-# ---------------------------------------------------------------------
+# =====================================================================
 elif st.session_state.page == "Forecast Explorer":
     st.markdown("### Forecast Explorer")
     st.caption("Explore T-GCN predictions vs actual speeds for any sensor and time period")
@@ -824,9 +839,9 @@ elif st.session_state.page == "Forecast Explorer":
         st_folium(mini_m, height=200, use_container_width=True)
 
     with col2:
-        pred_s = predictions[-n_points:, sensor_id, h_idx]
-        true_s = targets[-n_points:, sensor_id, h_idx]
-        time_x = list(range(n_points))
+        pred_s  = predictions[-n_points:, sensor_id, h_idx]
+        true_s  = targets[-n_points:, sensor_id, h_idx]
+        time_x  = list(range(n_points))
         mae_val = mean_absolute_error(true_s, pred_s)
 
         fig = go.Figure()
@@ -841,7 +856,7 @@ elif st.session_state.page == "Forecast Explorer":
             fillcolor="rgba(231,76,60,0.14)", fill="tonexty"))
         fig.update_layout(**dark_layout(
             f"Sensor {sensor_id} — {horizon} Forecast | MAE = {mae_val:.4f}", height=340))
-        fig.update_xaxes(title_text="Time Snapshot")
+        fig.update_xaxes(title_text="Time Snapshot (test set, most recent)")
         fig.update_yaxes(title_text="Normalized Speed")
         st.plotly_chart(fig, use_container_width=True)
 
@@ -850,7 +865,8 @@ elif st.session_state.page == "Forecast Explorer":
             fig2 = go.Figure()
             fig2.add_trace(go.Scatter(x=true_s.tolist(), y=pred_s.tolist(), mode="markers",
                 marker=dict(color="#4A90D9", opacity=0.55, size=5), name="Predictions"))
-            mn, mx = float(min(true_s.min(), pred_s.min())), float(max(true_s.max(), pred_s.max()))
+            mn = float(min(true_s.min(), pred_s.min()))
+            mx = float(max(true_s.max(), pred_s.max()))
             fig2.add_trace(go.Scatter(x=[mn, mx], y=[mn, mx],
                 line=dict(color="#E74C3C", dash="dash"), name="Perfect prediction"))
             fig2.update_layout(**dark_layout("Predicted vs Actual", height=290))
@@ -863,28 +879,48 @@ elif st.session_state.page == "Forecast Explorer":
             fig3.add_trace(go.Histogram(x=(pred_s - true_s).tolist(), nbinsx=30,
                 marker_color="#4A90D9", name="Error"))
             fig3.update_layout(**dark_layout("Error Distribution", height=290))
-            fig3.update_xaxes(title_text="Error (pred − actual)")
+            fig3.update_xaxes(title_text="Error (predicted − actual)")
             fig3.update_yaxes(title_text="Count")
             st.plotly_chart(fig3, use_container_width=True)
 
-# ---------------------------------------------------------------------
+
+# =====================================================================
 # PAGE 4 — DECISION DASHBOARD
-# ---------------------------------------------------------------------
+# =====================================================================
 elif st.session_state.page == "Decision Dashboard":
     st.markdown("### Decision Dashboard")
     st.caption("Operational recommendations powered by T-GCN traffic intelligence")
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.error("**IMMEDIATE ACTION**\n\nSensors 16 & 196 congested **100%** of time\n\n"
-                 "Deploy 5 permanent extra drivers\nLocation: 34.07°N 118.23°W")
-    with c2:
-        st.warning("**DAILY SCHEDULE**\n\nPre-position drivers at:\n"
-                   "• **6:45am** (before morning rush)\n• **4:45pm** (before evening rush)\n\n"
-                   "Evening 33% worse than morning")
-    with c3:
-        st.info("**APP INTEGRATION**\n\nShow ETA uncertainty flag for\n42 sensors with MAE > 0.245\n\n"
-                "Message: 'ETA may vary due\nto complex traffic patterns'")
+    # FIX: Equal-height action boxes via a single HTML flex row
+    st.markdown("""
+    <div class='action-row'>
+      <div class='action-box red'>
+        <div class='action-label'>🔴 Immediate Action</div>
+        <div class='action-body'>
+          Sensors <b>16 &amp; 196</b> are congested <b>100%</b> of observed time.<br><br>
+          Deploy <b>5 permanent extra drivers</b> within 1 km of this zone.<br>
+          <span style='color:#E74C3C;font-size:0.72rem'>Location: 34.07°N 118.23°W</span>
+        </div>
+      </div>
+      <div class='action-box yellow'>
+        <div class='action-label'>📅 Daily Schedule</div>
+        <div class='action-body'>
+          Pre-position drivers at:<br>
+          • <b>6:45am</b> — before morning rush (7am)<br>
+          • <b>4:45pm</b> — before evening rush (5pm)<br><br>
+          Evening congestion is <b>33% worse</b> than morning.
+        </div>
+      </div>
+      <div class='action-box blue'>
+        <div class='action-label'>📱 App Integration</div>
+        <div class='action-body'>
+          Show ETA uncertainty flag for <b>42 sensors</b> where prediction MAE &gt; 0.245.<br><br>
+          Customer message:<br>
+          <i>"ETA may vary due to complex traffic conditions."</i>
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
     col1, col2 = st.columns([2, 1])
@@ -907,12 +943,27 @@ elif st.session_state.page == "Decision Dashboard":
         })
         st.dataframe(action_df, hide_index=True, use_container_width=True, height=230)
 
+        # FIX: Bar chart with correct severity order and matching colors
         st.markdown("#### Congestion Level Distribution")
-        level_counts = sensor_df["congestion_level"].value_counts().reset_index()
+        level_order  = ["Critical", "High", "Medium", "Low"]
+        level_colors = {
+            "Critical": "#8B0000",   # dark red — matches map Critical
+            "High":     "#E74C3C",   # red      — matches map High
+            "Medium":   "#F39C12",   # orange   — matches map Moderate
+            "Low":      "#F7DC6F",   # yellow   — matches map Low
+        }
+        level_counts = (
+            sensor_df["congestion_level"]
+            .value_counts()
+            .reindex(level_order, fill_value=0)
+            .reset_index()
+        )
         level_counts.columns = ["Level", "Count"]
-        fig = px.bar(level_counts, x="Level", y="Count", color="Level",
-                     color_discrete_map={"Critical":"#E74C3C","High":"#F39C12",
-                                         "Medium":"#3498DB","Low":"#27AE60"})
+        fig = px.bar(
+            level_counts, x="Level", y="Count", color="Level",
+            color_discrete_map=level_colors,
+            category_orders={"Level": level_order},   # enforce severity order
+        )
         fig.update_layout(**dark_layout("Sensors by Congestion Level", height=260, legend_bottom=False))
         fig.update_layout(showlegend=False)
         fig.update_yaxes(title_text="Number of Sensors")
@@ -920,44 +971,44 @@ elif st.session_state.page == "Decision Dashboard":
 
     with col2:
         st.markdown("#### System Metrics")
-        _n_high = int((sensor_df["congestion_level"] == "High").sum())
+        _n_high   = int((sensor_df["congestion_level"] == "High").sum())
         _avg_cong = float(sensor_df["congestion_rate"].mean()) * 100
         _fc_label = ", ".join(f"S{i}" for i in _ds["fully_congested"]) or "None"
-        st.metric("Critical zones",      str(_ds["n_critical"]),           "Require permanent staffing")
-        st.metric("High priority zones", str(_n_high),                     "Rush hour coverage")
-        st.metric("Avg congestion rate", f"{_avg_cong:.1f}%",              "Across all sensors")
-        st.metric("Most congested",      _fc_label,                        "100% congestion rate")
-        st.metric("Hardest to predict",  f"S{_ds['worst_sensor_idx']}",    f"MAE = {_ds['worst_sensor_mae']:.3f}")
+        st.metric("Critical zones",      str(_ds["n_critical"]),         "Require permanent staffing")
+        st.metric("High priority zones", str(_n_high),                   "Rush hour coverage")
+        st.metric("Avg congestion rate", f"{_avg_cong:.1f}%",            "Across all sensors")
+        st.metric("Most congested",      _fc_label,                      "100% congestion rate")
+        st.metric("Hardest to predict",  f"S{_ds['worst_sensor_idx']}",  f"MAE = {_ds['worst_sensor_mae']:.3f}")
 
         st.markdown("#### Limitations")
         st.markdown("""
-- Data from 2012 — pre-pandemic
-- Highways only, no surface streets
-- 30-min less reliable (MAE=0.275)
-- No weather/incident features
+- Data from 2012 — pre-pandemic patterns
+- Highway sensors only, no surface streets
+- 30-min predictions less reliable (MAE ≈ 0.275)
+- No weather or incident features included
 """)
 
-# ---------------------------------------------------------------------
+
+# =====================================================================
 # PAGE 5 — MODEL RESULTS
-# ---------------------------------------------------------------------
+# =====================================================================
 elif st.session_state.page == "Model Results":
     st.markdown("### Model Results")
 
     tab1, tab2, tab3 = st.tabs(["Performance Table", "Error Analysis", "Architecture"])
 
     with tab1:
-        col1, col2 = st.columns(2)
         working_results = results_df.copy()
         working_results["Horizon"] = working_results["Horizon"].apply(format_horizon_for_table)
         horizon_order = ["5min", "15min", "30min"]
 
+        col1, col2 = st.columns(2)
         with col1:
             st.markdown("**MAE Results (lower = better)**")
             mae_pivot = (working_results.pivot(index="Horizon", columns="Model", values="MAE")
                          .reindex(horizon_order))
             st.dataframe(mae_pivot.style.highlight_min(axis=1, color="#1E5C1E"),
                          use_container_width=True)
-
         with col2:
             st.markdown("**RMSE Results (lower = better)**")
             rmse_pivot = (working_results.pivot(index="Horizon", columns="Model", values="RMSE")
@@ -965,43 +1016,45 @@ elif st.session_state.page == "Model Results":
             st.dataframe(rmse_pivot.style.highlight_min(axis=1, color="#1E5C1E"),
                          use_container_width=True)
 
+        # FIX: Add credibility note beneath the tables
+        st.markdown(
+            "<div style='color:#6B8CAE;font-size:0.72rem;margin-top:4px;margin-bottom:12px'>"
+            "ℹ️ RF trained separately per horizon on correct targets. "
+            "All models evaluated on identical held-out test set (last 20% of data, chronological split)."
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
         st.markdown("**Improvement of T-GCN vs Random Forest**")
         rf_df   = working_results[working_results["Model"] == "RandomForest"].set_index("Horizon").reindex(horizon_order)
         tgcn_df = working_results[working_results["Model"] == "T-GCN-V3"].set_index("Horizon").reindex(horizon_order)
+
         imp_rows = []
         for h in horizon_order:
             rf_mae   = float(rf_df.loc[h, "MAE"])
             tgcn_mae = float(tgcn_df.loc[h, "MAE"])
-            imp_rows.append({"Horizon": h, "RF MAE": round(rf_mae, 4),
-                             "T-GCN MAE": round(tgcn_mae, 4),
-                             "Improvement": f"{(rf_mae - tgcn_mae)/rf_mae*100:+.1f}%"})
+            imp_rows.append({
+                "Horizon":    h,
+                "RF MAE":     round(rf_mae,   4),
+                "T-GCN MAE":  round(tgcn_mae, 4),
+                "Improvement": f"{(rf_mae - tgcn_mae)/rf_mae*100:+.1f}%",
+            })
         st.dataframe(pd.DataFrame(imp_rows), hide_index=True, use_container_width=True)
 
+        # FIX: Removed redundant summary cards — improvement table above already
+        # shows all three horizons clearly. Kept only the key insight box.
         st.markdown("---")
-        st.markdown("<div class='section-header'>T-GCN Performance Summary</div>", unsafe_allow_html=True)
-        summary_cols = st.columns(3)
-        summaries = []
-        for h in horizon_order:
-            rf_mae   = float(rf_df.loc[h, "MAE"])
-            tgcn_mae = float(tgcn_df.loc[h, "MAE"])
-            imp      = (rf_mae - tgcn_mae) / rf_mae * 100
-            summaries.append((h, f"{tgcn_mae:.3f}", f"{imp:+.1f}%",
-                               "#27AE60" if imp >= 0 else "#E74C3C"))
-        for col, (h, mae, imp, color) in zip(summary_cols, summaries):
-            with col:
-                st.markdown(f"""
-                <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:10px;
-                            padding:1.4rem;text-align:center'>
-                  <div style='color:#8899AA;font-size:0.78rem;text-transform:uppercase;
-                              letter-spacing:1px'>{h}</div>
-                  <div style='color:#4A90D9;font-size:2rem;font-weight:800;margin:8px 0'>{mae}</div>
-                  <div style='color:{color};font-size:1rem;font-weight:600'>{imp}</div>
-                  <div style='color:#6B8CAE;font-size:0.72rem;margin-top:4px'>vs Random Forest</div>
-                </div>
-                """, unsafe_allow_html=True)
+        st.markdown(
+            "<div class='insight-box'>"
+            "<b style='color:#E8F0FE'>Key finding:</b> T-GCN beats Random Forest at <b>all three horizons</b> "
+            "(+4.9% at 5min, +11.3% at 15min, +11.8% at 30min). The spatial advantage is largest at "
+            "15 and 30 minutes — exactly when Uber needs reliable advance warning to pre-position drivers."
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
     with tab2:
-        st.markdown("**Model-driven error diagnostics (computed live from predictions)**")
+        st.markdown("**Model-driven error diagnostics (computed live from test predictions)**")
         c1, c2 = st.columns(2)
         with c1:
             fig_h = go.Figure()
@@ -1021,14 +1074,14 @@ elif st.session_state.page == "Model Results":
         sensor_rank = sensor_df[["index","latitude","longitude","congestion_rate",
                                   "prediction_mae","congestion_level"]].copy()
         sensor_rank = sensor_rank.sort_values("prediction_mae", ascending=False)
-        sensor_rank.columns = ["Sensor ID","Latitude","Longitude",
-                                "Congestion Rate","MAE (15min)","Level"]
+        sensor_rank.columns = ["Sensor ID","Latitude","Longitude","Congestion Rate","MAE (15min)","Level"]
         sensor_rank["Congestion %"] = sensor_rank["Congestion Rate"] * 100
 
-        fig_rank = px.scatter(sensor_rank, x="Congestion %", y="MAE (15min)", color="Level",
+        fig_rank = px.scatter(
+            sensor_rank, x="Congestion %", y="MAE (15min)", color="Level",
             hover_data=["Sensor ID","Latitude","Longitude"],
-            color_discrete_map={"Critical":"#E74C3C","High":"#F39C12",
-                                 "Medium":"#3498DB","Low":"#27AE60"})
+            color_discrete_map={"Critical":"#8B0000","High":"#E74C3C","Medium":"#F39C12","Low":"#F7DC6F"},
+        )
         fig_rank.update_layout(**dark_layout("Sensor Reliability vs Congestion", height=340))
         fig_rank.update_xaxes(title_text="Congestion Rate (%)")
         st.plotly_chart(fig_rank, use_container_width=True)
@@ -1038,8 +1091,8 @@ elif st.session_state.page == "Model Results":
 
         st.markdown("**Top high-error sensors by horizon**")
         selected_h = st.selectbox("Horizon", ["5min","15min","30min"], key="results_horizon")
-        top_error = (sensor_horizon_df[sensor_horizon_df["Horizon"] == selected_h]
-                     .sort_values("MAE", ascending=False).head(20))
+        top_error  = (sensor_horizon_df[sensor_horizon_df["Horizon"] == selected_h]
+                      .sort_values("MAE", ascending=False).head(20))
         fig_top = px.bar(top_error, x="Sensor ID", y="MAE",
                          color="MAE", color_continuous_scale="OrRd")
         fig_top.update_layout(**dark_layout(f"Top 20 Sensors by MAE ({selected_h})",
@@ -1047,16 +1100,22 @@ elif st.session_state.page == "Model Results":
         st.plotly_chart(fig_top, use_container_width=True)
 
     with tab3:
-        st.markdown("**Model Architecture**")
+        st.markdown("**Model Architecture — T-GCN**")
         st.markdown("""
-- **Architecture:** T-GCN (graph convolution + recurrent temporal modelling)
-- **Sensors:** 207 LA highway detectors
-- **Horizons:** 5 min, 15 min, 30 min
-- **Objective:** minimise short-horizon forecasting error under spatial dependence
+- **Architecture:** T-GCN (Temporal Graph Convolutional Network using GConvGRU)
+- **Input:** 207 sensors × last 12 timesteps × 1 feature (normalized speed)
+- **Graph:** 1,722 road edges, K=2 hop neighborhood
+- **Output:** 6 future timesteps per sensor (5, 10, 15, 20, 25, 30 min ahead)
+- **Evaluated at:** 5-min, 15-min, 30-min horizons
+- **Key design:** Sequential timestep processing — each of the 12 steps is fed one at a time
+  through GConvGRU, so the hidden state accumulates both spatial and temporal context
+- **Parameters:** 27,750 total
+- **Loss function:** Huber Loss (robust to outliers)
+- **Optimizer:** Adam (lr=0.001, weight_decay=1e-4) with CosineAnnealingLR scheduler
 """)
-        selected_sensor  = st.selectbox("Inspect sensor", range(207),
+        selected_sensor  = st.selectbox("Inspect sensor:", range(207),
                                          format_func=lambda x: f"Sensor {x:03d}", key="diag_sensor")
-        selected_horizon = st.selectbox("Forecast horizon",
+        selected_horizon = st.selectbox("Forecast horizon:",
                                          [("5min",0),("15min",2),("30min",5)],
                                          format_func=lambda x: x[0], key="diag_horizon")
         h_name, h_idx = selected_horizon
@@ -1064,31 +1123,27 @@ elif st.session_state.page == "Model Results":
         true_line = targets[:,    selected_sensor, h_idx]
         err_line  = np.abs(pred_line - true_line)
 
-        diag_df = pd.DataFrame({"t": np.arange(len(pred_line)),
-                                 "Actual": true_line, "Predicted": pred_line,
-                                 "Absolute Error": err_line})
-
         fig_beh = go.Figure()
-        fig_beh.add_trace(go.Scatter(x=diag_df["t"], y=diag_df["Actual"],
+        fig_beh.add_trace(go.Scatter(x=np.arange(len(pred_line)), y=true_line,
             name="Actual", line=dict(color="#2ECC71", width=2)))
-        fig_beh.add_trace(go.Scatter(x=diag_df["t"], y=diag_df["Predicted"],
+        fig_beh.add_trace(go.Scatter(x=np.arange(len(pred_line)), y=pred_line,
             name="Predicted", line=dict(color="#E74C3C", width=2, dash="dot")))
-        fig_beh.update_layout(**dark_layout(
-            f"Sensor {selected_sensor} — {h_name}", height=330))
+        fig_beh.update_layout(**dark_layout(f"Sensor {selected_sensor} — Full Test Period ({h_name})", height=330))
         fig_beh.update_xaxes(title_text="Snapshot")
         fig_beh.update_yaxes(title_text="Normalized Speed")
         st.plotly_chart(fig_beh, use_container_width=True)
 
-        fig_err = px.histogram(diag_df, x="Absolute Error", nbins=40,
-                               color_discrete_sequence=["#4A90D9"])
+        fig_err = px.histogram(pd.DataFrame({"Absolute Error": err_line}), x="Absolute Error",
+                               nbins=40, color_discrete_sequence=["#4A90D9"])
         fig_err.update_layout(**dark_layout(
             f"Error distribution — Sensor {selected_sensor} ({h_name})",
             height=280, legend_bottom=False))
         st.plotly_chart(fig_err, use_container_width=True)
 
-# ---------------------------------------------------------------------
+
+# =====================================================================
 # FOOTER
-# ---------------------------------------------------------------------
+# =====================================================================
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("""
 <div style='border-top:1px solid #1E2D45;padding:1rem 0;margin-top:2rem;
