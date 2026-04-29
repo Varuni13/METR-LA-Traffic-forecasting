@@ -26,11 +26,14 @@ st.markdown("""
 <style>
 /* ── Base ─────────────────────────────────────────────────── */
 .stApp { background-color: #080C14; }
-/* Hide sidebar and its toggle button entirely */
+/* Hide sidebar, its toggle, and Streamlit's Deploy toolbar */
 [data-testid="stSidebar"]          { display: none !important; }
 [data-testid="collapsedControl"]   { display: none !important; }
 section[data-testid="stSidebarNav"]{ display: none !important; }
-.stMainBlockContainer              { max-width: 100% !important; padding: 3.5rem 2rem 1rem 2rem !important; }
+[data-testid="stToolbar"]          { display: none !important; }
+[data-testid="stDecoration"]       { display: none !important; }
+header[data-testid="stHeader"]     { display: none !important; }
+.stMainBlockContainer              { max-width: 100% !important; padding: 1rem 2rem !important; }
 
 /* ── Top header bar ────────────────────────────────────────── */
 .top-bar {
@@ -51,47 +54,44 @@ section[data-testid="stSidebarNav"]{ display: none !important; }
 .ts-value { color: #4A90D9; font-size: 0.85rem; font-weight: 600; }
 
 /* ── Pill nav ──────────────────────────────────────────────── */
-.nav-bar {
-  background: #0D1117;
-  border-bottom: 1px solid #1E2D45;
-  padding: 6px 20px 0 20px;
-  display: flex;
-  gap: 4px;
-  margin-bottom: 20px;
-  border-radius: 0 0 8px 8px;
+/* Add gap between header and nav */
+div[data-testid="stRadio"] {
+  margin-top: 14px !important;
 }
-/* Radio styled as pill tabs */
 div[data-testid="stRadio"] > label { display: none !important; }
 div[data-testid="stRadio"] > div[role="radiogroup"] {
   display: flex !important;
   flex-direction: row !important;
-  gap: 4px !important;
+  gap: 6px !important;
   flex-wrap: nowrap !important;
   background: transparent !important;
 }
+/* Inactive tab — visible pill shape so it's clearly clickable */
 div[data-testid="stRadio"] label {
-  padding: 7px 16px !important;
-  border-radius: 6px 6px 0 0 !important;
-  background: transparent !important;
-  color: #6B8CAE !important;
+  padding: 6px 18px !important;
+  border-radius: 20px !important;
+  background: #0D1A2D !important;
+  border: 1px solid #1E3A5F !important;
+  color: #7A9CC0 !important;
   font-size: 0.83rem !important;
   font-weight: 500 !important;
   cursor: pointer !important;
   white-space: nowrap !important;
-  border: none !important;
-  border-bottom: 2px solid transparent !important;
   transition: all 0.15s !important;
   margin-bottom: 0 !important;
 }
+/* Hover */
 div[data-testid="stRadio"] label:hover {
+  background: #132540 !important;
+  border-color: #2E5090 !important;
   color: #A8C0E8 !important;
-  background: #0F1E30 !important;
 }
+/* Active tab — solid blue fill */
 div[data-testid="stRadio"] label:has(input:checked) {
-  color: #4A90D9 !important;
+  background: #1A4A8A !important;
+  border-color: #4A90D9 !important;
+  color: #E8F0FE !important;
   font-weight: 700 !important;
-  border-bottom: 2px solid #4A90D9 !important;
-  background: #0F1E30 !important;
 }
 /* Hide radio circle dot */
 div[data-testid="stRadio"] label > div:first-child { display: none !important; }
@@ -189,6 +189,20 @@ div[aria-selected="true"]    { color: #4A90D9 !important; border-bottom-color: #
 
 /* ── Plotly ──────────────────────────────────────────────── */
 .js-plotly-plot { border-radius: 10px; overflow: hidden; }
+
+/* ── Equal-height columns ────────────────────────────────── */
+[data-testid="stHorizontalBlock"] {
+  align-items: stretch !important;
+}
+[data-testid="column"] {
+  display: flex !important;
+  flex-direction: column !important;
+}
+[data-testid="column"] > div:first-child {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+}
 
 /* ── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
@@ -364,31 +378,25 @@ _stat_pills = "  ·  ".join([
 
 st.markdown(f"""
 <div style='background:linear-gradient(135deg,#0F2444 0%,#1B3A6B 50%,#0F2444 100%);
-            border:1px solid #2E5090;border-radius:10px;padding:1.2rem 1.6rem;
+            border:1px solid #2E5090;border-radius:10px;padding:0.9rem 1.6rem;
             margin-bottom:0;position:relative;overflow:hidden'>
   <div style='position:absolute;top:0;left:0;right:0;height:3px;
               background:linear-gradient(90deg,#4A90D9,#7B68EE,#4A90D9)'></div>
-  <div style='display:flex;justify-content:space-between;align-items:flex-start;gap:1rem'>
-    <div>
-      <div style='display:flex;align-items:center;gap:10px;margin-bottom:6px'>
-        <span style='font-size:1.6rem'>🚦</span>
-        <span style='color:#E8F0FE;font-weight:800;font-size:1.4rem;letter-spacing:-0.5px'>
+  <div style='display:flex;justify-content:space-between;align-items:center;gap:1rem'>
+    <div style='display:flex;align-items:center;gap:12px'>
+      <span style='font-size:1.5rem'>🚦</span>
+      <div>
+        <span style='color:#E8F0FE;font-weight:800;font-size:1.35rem;letter-spacing:-0.5px'>
           METR-LA Traffic Intelligence</span>
-        <span class='status-live'><span class='status-dot'></span>Live</span>
+        <div style='color:#6B8CAE;font-size:0.72rem;margin-top:2px'>
+          Graph Neural Network &nbsp;·&nbsp; 207 LA highway sensors &nbsp;·&nbsp; 5, 15 &amp; 30-min forecasts
+        </div>
       </div>
-      <div style='color:#8AAACE;font-size:0.8rem;margin-bottom:8px'>
-        Graph Neural Network · Real-time forecasting across 207 Los Angeles highway sensors
-        · Predicting 5, 15 and 30 minutes ahead
-      </div>
-      <div style='font-size:0.78rem'>{_stat_pills}</div>
-      <div style='margin-top:8px;display:flex;gap:6px;flex-wrap:wrap'>{_all_alerts}</div>
+      <span class='status-live'><span class='status-dot'></span>Live</span>
     </div>
     <div style='text-align:right;flex-shrink:0'>
-      <div style='color:#6B8CAE;font-size:0.68rem'>Last updated</div>
-      <div style='color:#4A90D9;font-size:1rem;font-weight:700'>{datetime.now().strftime('%H:%M:%S')}</div>
-      <div style='color:#3A5A7A;font-size:0.68rem;margin-top:6px'>
-        Test set: 6,851 snapshots<br>Training: 23,978 snapshots
-      </div>
+      <div style='color:#6B8CAE;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px'>Last updated</div>
+      <div style='color:#4A90D9;font-size:1.1rem;font-weight:700'>{datetime.now().strftime('%H:%M:%S')}</div>
     </div>
   </div>
 </div>
@@ -421,8 +429,7 @@ selected_label = st.radio(
 )
 st.session_state.page = NAV_MAP[selected_label]
 
-st.markdown("<div style='border-bottom:1px solid #1E2D45;margin-bottom:20px'></div>",
-            unsafe_allow_html=True)
+st.markdown("<div style='margin-bottom:24px'></div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------
 # PAGE 1 — OVERVIEW
@@ -451,7 +458,9 @@ if st.session_state.page == "Overview":
             </div>
             """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<div style='margin: 1.2rem 0; border-bottom: 1px solid #1E2D45'></div>", unsafe_allow_html=True)
+
+    # ── ROW 1: Why Graph ML? (left) | T-GCN Performance + stats (right) ──
     col1, col2 = st.columns([3, 2])
 
     with col1:
@@ -464,6 +473,8 @@ if st.session_state.page == "Overview":
         (1,722 connections between 207 sensors).
         </div>
         """, unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-top:12px'></div>", unsafe_allow_html=True)
 
         results_df_local = results_df[
             results_df["Model"].isin(["Persistence", "RandomForest", "T-GCN-V3"])
@@ -483,9 +494,9 @@ if st.session_state.page == "Overview":
         fig.add_trace(go.Scatter(
             x=rf_d["Horizon"].tolist() + rf_d["Horizon"].tolist()[::-1],
             y=rf_d["MAE"].tolist() + tgcn_d["MAE"].tolist()[::-1],
-            fill="toself", fillcolor="rgba(39,174,96,0.12)",
+            fill="toself", fillcolor="rgba(39,174,96,0.10)",
             line=dict(width=0), showlegend=True,
-            name="T-GCN improvement", hoverinfo="skip",
+            name="T-GCN saves (shaded gap)", hoverinfo="skip",
         ))
         for model in ["Persistence", "RandomForest", "T-GCN-V3"]:
             d = (results_df_local[results_df_local["Model"] == model]
@@ -497,12 +508,11 @@ if st.session_state.page == "Overview":
                 line=dict(color=color_map[model], width=width_map[model]),
                 marker=dict(size=9 if model == "T-GCN-V3" else 6),
             ))
-        fig.update_layout(**dark_layout("T-GCN vs Baselines — MAE by Horizon", height=320))
+        fig.update_layout(**dark_layout("MAE by Horizon — lower is better · shaded gap = T-GCN advantage", height=320))
         fig.update_yaxes(title_text="MAE")
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        st.markdown("### Key Results")
         _mae5  = _ds.get("tgcn_mae_5min",  0)
         _mae15 = _ds.get("tgcn_mae_15min", 0)
         _mae30 = _ds.get("tgcn_mae_30min", 0)
@@ -510,63 +520,122 @@ if st.session_state.page == "Overview":
         _imp15 = _ds.get("imp_15min", 0)
         _imp30 = _ds.get("imp_30min", 0)
 
-        _5min_msg  = f"5-min:  {_ds['best_5min']} best — MAE={_mae5:.3f}  ({_imp5:+.1f}% vs RF)"
-        _15min_msg = f"15-min: {_ds['best_15min']} best — MAE={_mae15:.3f} ({_imp15:+.1f}% vs RF)"
-        _30min_msg = f"30-min: {_ds['best_30min']} best — MAE={_mae30:.3f} ({_imp30:+.1f}% vs RF)"
+        def _imp_badge(imp):
+            color = "#27AE60" if imp > 0 else "#F39C12"
+            return (f"<span style='background:{color}22;border:1px solid {color}55;border-radius:4px;"
+                    f"padding:1px 8px;color:{color};font-size:0.7rem;font-weight:700'>"
+                    f"{'+'if imp>0 else ''}{imp:.1f}% vs RF</span>")
 
-        (st.success if _imp5  > 0 else st.warning)(_5min_msg)
-        (st.success if _imp15 > 0 else st.warning)(_15min_msg)
-        (st.success if _imp30 > 0 else st.warning)(_30min_msg)
-
-        st.info("r=0.672 spatial autocorrelation confirms graph value")
+        horizon_rows_html = "".join(
+            f"<tr style='border-bottom:1px solid #1A2D45'>"
+            f"<td style='padding:8px 10px 8px 0;color:#7A9CC0;font-size:0.75rem;white-space:nowrap'>{h}</td>"
+            f"<td style='padding:8px 6px;color:#4A90D9;font-size:1rem;font-weight:800'>{mae:.3f}</td>"
+            f"<td style='padding:8px 0 8px 6px;text-align:right'>{_imp_badge(imp)}</td>"
+            f"</tr>"
+            for h, mae, imp in [
+                ("5-min",  _mae5,  _imp5),
+                ("15-min", _mae15, _imp15),
+                ("30-min", _mae30, _imp30),
+            ]
+        )
 
         _fc_ids = _ds["fully_congested"]
-        if _fc_ids:
-            _fc_str = ", ".join(f"S{i}" for i in _fc_ids)
-            st.error(f"Sensors {_fc_str}: congested 100% of time")
-        else:
-            st.success("No sensors at 100% congestion")
+        _congestion_card = (
+            f"<div style='background:#1A0A0A;border:1px solid #5C1515;border-left:3px solid #E74C3C;"
+            f"border-radius:8px;padding:8px 12px;flex:1'>"
+            f"<div style='color:#E74C3C;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px'>Always Congested</div>"
+            f"<div style='color:#E88080;font-size:0.95rem;font-weight:700;margin-top:2px'>"
+            + ", ".join(f"S{i}" for i in _fc_ids) +
+            f"</div><div style='color:#6B8CAE;font-size:0.68rem'>100% congestion rate</div></div>"
+            if _fc_ids else
+            f"<div style='background:#0A1E0F;border:1px solid #1A5C2A;border-left:3px solid #27AE60;"
+            f"border-radius:8px;padding:8px 12px;flex:1'>"
+            f"<div style='color:#27AE60;font-size:0.68rem;font-weight:600'>No chronic congestion</div>"
+            f"<div style='color:#6B8CAE;font-size:0.68rem'>All sensors clear</div></div>"
+        )
 
-        st.markdown("### Training Summary")
-        st.markdown("""
-| | |
-|---|---|
-| Architecture | T-GCN (GConvGRU) |
-| Parameters | 27,750 |
-| Training time | 16 minutes |
-| GPU | RTX 3060 |
-| Best epoch | 10/30 |
-| Loss | Huber Loss |
-""")
+        st.markdown(f"""
+        <div style='margin-bottom:8px'>
+          <div style='color:#6B8CAE;font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;
+                      margin-bottom:6px;font-weight:600'>T-GCN Model Performance</div>
+          <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:8px;padding:6px 14px'>
+            <table style='width:100%;border-collapse:collapse'>
+              <tr style='border-bottom:1px solid #1E3A5F'>
+                <th style='padding:6px 10px 6px 0;color:#4A6A8A;font-size:0.68rem;font-weight:600;
+                           text-align:left;text-transform:uppercase'>Horizon</th>
+                <th style='padding:6px 6px;color:#4A6A8A;font-size:0.68rem;font-weight:600;
+                           text-align:left;text-transform:uppercase'>MAE</th>
+                <th style='padding:6px 0 6px 6px;color:#4A6A8A;font-size:0.68rem;font-weight:600;
+                           text-align:right;text-transform:uppercase'>vs RF</th>
+              </tr>
+              {horizon_rows_html}
+            </table>
+          </div>
+        </div>
+        <div style='display:flex;gap:8px'>
+          <div style='background:#0A1525;border:1px solid #1E3A6A;border-left:3px solid #4A90D9;
+                      border-radius:8px;padding:8px 12px;flex:1'>
+            <div style='color:#4A90D9;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px'>Spatial Correlation</div>
+            <div style='color:#E8F0FE;font-size:0.95rem;font-weight:700;margin-top:2px'>r = 0.672</div>
+            <div style='color:#6B8CAE;font-size:0.68rem'>Graph structure validated</div>
+          </div>
+          {_congestion_card}
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("<div class='section-header'>How The System Works</div>", unsafe_allow_html=True)
+    # ── ROW 2: How The System Works (left) | Training Summary (right) ──
+    st.markdown("<div style='margin: 1.2rem 0; border-bottom: 1px solid #1E2D45'></div>", unsafe_allow_html=True)
+    col3, col4 = st.columns([3, 2])
 
-    cols = st.columns(3)
-    steps = [
-        ("1. Collect",
-         "207 highway sensors report traffic speeds every 5 minutes. Each reading captures speed + time of day for that road location.",
-         "5-min intervals", "#4A90D9"),
-        ("2. Predict",
-         "T-GCN processes the last 60 minutes of data across all 207 connected sensors simultaneously, predicting the next 5, 15, and 30 minutes.",
-         "12 time steps input", "#7B68EE"),
-        ("3. Act",
-         "Operations team sees predicted congestion zones 15 minutes ahead. Drivers are repositioned BEFORE demand spikes — not after.",
-         "15-min lookahead", "#27AE60"),
-    ]
-    for col, (title, desc, stat, color) in zip(cols, steps):
-        with col:
-            st.markdown(f"""
-            <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-top:3px solid {color};
-                        border-radius:10px;padding:1.2rem 1.4rem;height:100%'>
-              <div style='color:{color};font-weight:700;font-size:0.9rem;margin-bottom:8px;
-                          text-transform:uppercase;letter-spacing:0.5px'>{title}</div>
-              <div style='color:#8899AA;font-size:0.83rem;line-height:1.6;margin-bottom:12px'>{desc}</div>
-              <div style='background:#0A1520;border:1px solid #1E3A5F;border-radius:6px;
-                          padding:4px 10px;display:inline-block;color:{color};
-                          font-size:0.72rem;font-weight:600;letter-spacing:0.5px'>{stat}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    with col3:
+        st.markdown("<div class='section-header'>How The System Works</div>", unsafe_allow_html=True)
+        steps = [
+            ("1. Collect",
+             "207 highway sensors report traffic speeds every 5 minutes. Each reading captures speed + time of day for that road location.",
+             "5-min intervals", "#4A90D9"),
+            ("2. Predict",
+             "T-GCN processes the last 60 minutes of data across all 207 connected sensors simultaneously, predicting the next 5, 15, and 30 minutes.",
+             "12 time steps input", "#7B68EE"),
+            ("3. Act",
+             "Operations team sees predicted congestion zones 15 minutes ahead. Drivers are repositioned BEFORE demand spikes — not after.",
+             "15-min lookahead", "#27AE60"),
+        ]
+        steps_html = "".join(f"""
+        <div style='background:#0D1A2D;border:1px solid #1E3A5F;border-left:3px solid {color};
+                    border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;
+                    align-items:center;gap:14px'>
+          <div style='flex-shrink:0;background:{color}22;border:1px solid {color}55;border-radius:6px;
+                      padding:6px 11px;color:{color};font-size:0.72rem;font-weight:700;letter-spacing:0.5px;
+                      white-space:nowrap;text-align:center'>{title}</div>
+          <div style='flex:1'>
+            <div style='color:#A8C0E8;font-size:0.8rem;line-height:1.55'>{desc}</div>
+            <div style='color:{color};font-size:0.7rem;font-weight:600;margin-top:5px'>{stat}</div>
+          </div>
+        </div>""" for title, desc, stat, color in steps)
+        st.markdown(steps_html, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown("<div style='color:#6B8CAE;font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600'>Training Summary</div>", unsafe_allow_html=True)
+        training_rows = [
+            ("Architecture", "T-GCN (GConvGRU)"),
+            ("Parameters",   "27,750"),
+            ("Training time","16 min · RTX 3060"),
+            ("Best epoch",   "10 / 30"),
+            ("Loss fn",      "Huber Loss"),
+        ]
+        rows_html = "".join(
+            f"<tr style='border-bottom:1px solid #1A2D45'>"
+            f"<td style='color:#6B8CAE;font-size:0.75rem;padding:6px 10px 6px 0;white-space:nowrap'>{k}</td>"
+            f"<td style='color:#E8F0FE;font-size:0.75rem;font-weight:600;padding:6px 0;text-align:right'>{v}</td>"
+            f"</tr>"
+            for k, v in training_rows
+        )
+        st.markdown(
+            f"<div style='background:#0D1A2D;border:1px solid #1E3A5F;border-radius:8px;padding:6px 14px'>"
+            f"<table style='width:100%;border-collapse:collapse'>{rows_html}</table></div>",
+            unsafe_allow_html=True,
+        )
+
 
 # ---------------------------------------------------------------------
 # PAGE 2 — LIVE TRAFFIC MAP
