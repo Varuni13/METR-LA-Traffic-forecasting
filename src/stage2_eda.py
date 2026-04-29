@@ -275,13 +275,19 @@ def step7_network(edge_index, sensor_mean_speed):
         print("  [SKIP] networkx not available -- install with: pip install networkx")
         return
 
+    sensor_loc_path = config.DATA_DIR / "sensor_locations.csv"
+    df_loc = pd.read_csv(sensor_loc_path).sort_values("index")
+    pos = {
+        int(row["index"]): (row["longitude"], row["latitude"])
+        for _, row in df_loc.iterrows()
+    }
+
     G = nx.Graph()
     G.add_nodes_from(range(207))
     ei    = edge_index.numpy()
     edges = list(zip(ei[0].tolist(), ei[1].tolist()))
     G.add_edges_from(edges)
 
-    pos    = nx.spring_layout(G, seed=config.RANDOM_SEED)
     speeds = [sensor_mean_speed[i] for i in range(207)]
     vmin, vmax = min(speeds), max(speeds)
 
@@ -296,9 +302,12 @@ def step7_network(edge_index, sensor_mean_speed):
     sm.set_array([])
     plt.colorbar(sm, ax=ax, label='Mean Normalized Speed')
     ax.set_title('METR-LA Road Sensor Network (207 sensors, 1722 connections)')
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_aspect('equal', adjustable='box')
     ax.axis('off')
     fig.text(0.5, 0.01,
-             'Figure 5: Network graph of 207 METR-LA sensors. Node color indicates average speed (green=fast, red=congested). Connected sensors share road-network proximity.',
+             'Figure 5: Network graph of 207 METR-LA sensors placed by real longitude and latitude. Node color indicates average speed (green=fast, red=congested). Connected sensors share road-network proximity.',
              ha='center', fontsize=9, style='italic')
     plt.tight_layout()
     out = config.FIGURES_DIR / 'fig5_network.png'

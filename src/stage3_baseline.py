@@ -144,38 +144,46 @@ def step4_hist_avg(X_train, X_test, y_test):
 # =============================================================================
 def step5_random_forest(X_train, y_train, X_test, y_test):
     print("\n=== STEP 5: Random Forest Baseline ===")
-    print("  Training RF on flattened features - this may take 2-3 minutes...")
+    print("  Training one RF per horizon - this may take 3-5 minutes...")
 
-    X_train_flat = X_train.reshape(-1, 12)             # (n_train*207, 12)
-    y_train_flat = y_train[:, :, 0].reshape(-1)        # horizon 0 = 5min
+    X_train_flat = X_train.reshape(-1, 12)   # (n_train*207, 12)
+    X_test_flat  = X_test.reshape(-1, 12)    # (n_test*207, 12)
 
     rng = np.random.RandomState(config.RANDOM_SEED)
-    sample_idx = rng.choice(len(X_train_flat), 50000, replace=False)
-    X_sample   = X_train_flat[sample_idx]
-    y_sample   = y_train_flat[sample_idx]
-
-    rf = RandomForestRegressor(
-        n_estimators=50, max_depth=8,
-        random_state=config.RANDOM_SEED, n_jobs=-1
-    )
-    rf.fit(X_sample, y_sample)
-    print("  RF trained.")
-
-    X_test_flat = X_test.reshape(-1, 12)               # (n_test*207, 12)
-    y_pred_flat = rf.predict(X_test_flat)
 
     results = {}
     for name, h in zip(HORIZON_NAMES, HORIZON_IDX):
-        true = y_test[:, :, h].reshape(-1)
+        print(f"  Training RF for horizon: {name} ...")
+
+        # Target = the correct horizon for THIS model
+        y_train_flat = y_train[:, :, h].reshape(-1)   # (n_train*207,)
+
+        # Sample 50k examples for speed (same as before)
+        sample_idx = rng.choice(len(X_train_flat), 50000, replace=False)
+        X_sample   = X_train_flat[sample_idx]
+        y_sample   = y_train_flat[sample_idx]
+
+        rf = RandomForestRegressor(
+            n_estimators=50, max_depth=8,
+            random_state=config.RANDOM_SEED, n_jobs=-1
+        )
+        rf.fit(X_sample, y_sample)
+
+        # Predict and evaluate on the MATCHING horizon
+        y_pred_flat = rf.predict(X_test_flat)
+        true        = y_test[:, :, h].reshape(-1)
+
         mae  = mean_absolute_error(true, y_pred_flat)
         rmse = np.sqrt(mean_squared_error(true, y_pred_flat))
         results[name] = {"MAE": mae, "RMSE": rmse}
+        print(f"    {name}: MAE={mae:.4f}  RMSE={rmse:.4f}")
 
-    print(f"  {'Horizon':<8} {'MAE':>8} {'RMSE':>8}")
+    print(f"\n  {'Horizon':<8} {'MAE':>8} {'RMSE':>8}")
     print(f"  {'-'*26}")
     for name, m in results.items():
         print(f"  {name:<8} {m['MAE']:>8.4f} {m['RMSE']:>8.4f}")
-    print("  RF uses last 12 timesteps as features - no graph structure")
+    print("  RF uses last 12 timesteps per sensor - no graph structure")
+    print("  Each horizon trained on its own matching target")
 
     return results
 
@@ -234,8 +242,8 @@ def step7_figure(df):
     fig.suptitle("Baseline Model Comparison: MAE and RMSE by Forecast Horizon",
                  fontsize=13, fontweight='bold')
     fig.text(0.5, -0.03,
-             "Figure 6: All three baselines show increasing error at longer horizons. "
-             "Random Forest outperforms persistence, establishing a meaningful benchmark for the graph model.",
+             "Figure 6: Persistence dominates at 5 minutes — showing that simple baselines are hard to beat at very short horizons. "
+             "Random Forest improves at 30 minutes where historical patterns become more valuable than the current state alone.",
              ha='center', fontsize=9, style='italic')
     plt.tight_layout()
     out = config.FIGURES_DIR / 'fig6_baseline_comparison.png'
@@ -276,6 +284,27 @@ def step8_summary_file(df, persistence_results, hist_avg_results, rf_results):
         rf_5 = rf_results["5min"]["MAE"]
         target = rf_5 * 0.9
         f.write(f"Target for graph model: beat RF MAE of {rf_5:.4f} by 10% -> MAE < {target:.4f}\n")
+        
+            # Note about Random Forest sampling used during training
+            try:
+                X_train_arr = np.load(config.DATA_DIR / 'X_train.npy')
+                n_train = X_train_arr.shape[0]
+                num_sensors = X_train_arr.shape[1]
+                total_rows = n_train * num_sensors
+                sample_used = 50000
+                pct = sample_used / total_rows * 100
+                f.write("\n")
+                f.write("NOTE ON RANDOM FOREST TRAINING:\n")
+                f.write("  For speed, the Random Forest training sampled 50,000 rows from the "
+                    f"available {total_rows:,} training rows (~{pct:.2f}%).\n")
+                f.write("  This means the RF baseline may be undertrained compared to using the "
+                    "full training set; treat RF performance as a practical, compute-limited "
+                    "baseline rather than an absolute upper bound.\n")
+            except Exception:
+                f.write("\n")
+                f.write("NOTE ON RANDOM FOREST TRAINING: RF was trained on a 50,000-row sample "
+                    "(approx. 1% of data). This sampling was used for speed; results may "
+                    "vary if RF is trained on the full dataset.\n")
 
     print(f"  Baseline summary saved -> {out}")
 

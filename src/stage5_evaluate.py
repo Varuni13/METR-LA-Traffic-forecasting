@@ -40,23 +40,29 @@ def step1_load():
 # ---------------------------------------------------------------------------
 # STEP 2 — FINAL MODEL COMPARISON FIGURE
 # ---------------------------------------------------------------------------
-def step2_comparison_figure():
+def step2_comparison_figure(df):
     print("\n=== STEP 2: Final comparison figure ===")
 
     horizons = ["5min", "15min", "30min"]
+    # Map display names used in plots -> model names in all_results_v3.csv
+    model_name_map = {
+        "Persistence": "Persistence",
+        "Hist Average": "HistoricalAvg",
+        "Random Forest": "RandomForest",
+        "T-GCN (ours)": "T-GCN-V3",
+    }
 
-    models_data = {
-        "Persistence":   {"5min": 0.1443, "15min": 0.2006, "30min": 0.2660},
-        "Hist Average":  {"5min": 0.7514, "15min": 0.7515, "30min": 0.7515},
-        "Random Forest": {"5min": 0.1477, "15min": 0.2005, "30min": 0.2631},
-        "T-GCN (ours)":  {"5min": 0.1400, "15min": 0.1998, "30min": 0.2752},
-    }
-    rmse_data = {
-        "Persistence":   {"5min": 0.3395, "15min": 0.4911, "30min": 0.6335},
-        "Hist Average":  {"5min": 1.0985, "15min": 1.0985, "30min": 1.0985},
-        "Random Forest": {"5min": 0.3277, "15min": 0.4740, "30min": 0.6127},
-        "T-GCN (ours)":  {"5min": 0.3250, "15min": 0.4677, "30min": 0.5994},
-    }
+    def _get_metric(df, model_key, horizon, metric="MAE"):
+        row = df[(df["Model"] == model_key) & (df["Horizon"] == horizon)]
+        if row.empty:
+            raise ValueError(f"Missing results for {model_key} @ {horizon} in all_results_v3.csv")
+        return float(row[metric].values[0])
+
+    models_data = {}
+    rmse_data = {}
+    for display, csv_name in model_name_map.items():
+        models_data[display] = {h: _get_metric(df, csv_name, h, "MAE") for h in horizons}
+        rmse_data[display]   = {h: _get_metric(df, csv_name, h, "RMSE") for h in horizons}
 
     palette    = {"Persistence": "steelblue",  "Hist Average": "darkorange",
                   "Random Forest": "green",     "T-GCN (ours)": "red"}
@@ -300,14 +306,22 @@ def step4_congestion_analysis(all_preds, all_targets, X_test):
 # ---------------------------------------------------------------------------
 # STEP 5 — IMPROVEMENT SUMMARY TABLE
 # ---------------------------------------------------------------------------
-def step5_improvement_summary():
+def step5_improvement_summary(df):
     print("\n=== STEP 5: Improvement summary ===")
 
+    horizons = ["5min", "15min", "30min"]
+    # read values from all_results_v3.csv via df
+    def _val(model_key, horizon, metric="MAE"):
+        row = df[(df["Model"] == model_key) & (df["Horizon"] == horizon)]
+        if row.empty:
+            raise ValueError(f"Missing results for {model_key} @ {horizon} in all_results_v3.csv")
+        return float(row[metric].values[0])
+
     summary = pd.DataFrame({
-        "Horizon":         ["5min",  "15min", "30min"],
-        "Persistence MAE": [0.1443,  0.2006,  0.2660],
-        "RF MAE":          [0.1477,  0.2005,  0.2631],
-        "T-GCN MAE":       [0.1400,  0.1998,  0.2752],
+        "Horizon":         horizons,
+        "Persistence MAE": [_val("Persistence", h) for h in horizons],
+        "RF MAE":          [_val("RandomForest", h) for h in horizons],
+        "T-GCN MAE":       [_val("T-GCN-V3", h) for h in horizons],
     })
 
     summary["Improvement vs Persistence (%)"] = (
@@ -428,14 +442,14 @@ def step7_final_print():
 # ---------------------------------------------------------------------------
 def main():
     df, all_preds, all_targets, X_test = step1_load()
-    step2_comparison_figure()
+    step2_comparison_figure(df)
     sensor_mae, mean_mae, std_mae, min_mae, max_mae = step3_sensor_analysis(
         all_preds, all_targets
     )
     gnn_congested_mae, gnn_freeflow_mae, congestion_frac = step4_congestion_analysis(
         all_preds, all_targets, X_test
     )
-    step5_improvement_summary()
+    step5_improvement_summary(df)
     step6_save_summary(
         sensor_mae, mean_mae, std_mae, min_mae, max_mae,
         gnn_congested_mae, gnn_freeflow_mae, congestion_frac,

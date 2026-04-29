@@ -3,6 +3,7 @@ import os
 import time
 import traceback
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import matplotlib
@@ -35,17 +36,32 @@ matplotlib.rcParams["figure.dpi"] = 150
 def step1_load_data():
     print("\n=== STEP 1: Loading data ===")
 
-    X_train = torch.FloatTensor(np.load(config.DATA_DIR / "X_train.npy"))
-    y_train = torch.FloatTensor(np.load(config.DATA_DIR / "y_train.npy"))
-    X_val   = torch.FloatTensor(np.load(config.DATA_DIR / "X_val.npy"))
-    y_val   = torch.FloatTensor(np.load(config.DATA_DIR / "y_val.npy"))
-    X_test  = torch.FloatTensor(np.load(config.DATA_DIR / "X_test.npy"))
-    y_test  = torch.FloatTensor(np.load(config.DATA_DIR / "y_test.npy"))
-
     from torch_geometric_temporal.dataset import METRLADatasetLoader
-    loader  = METRLADatasetLoader()
+
+    loader = METRLADatasetLoader()
     dataset = loader.get_dataset(num_timesteps_in=12, num_timesteps_out=6)
-    snap    = next(iter(dataset))
+    snapshots = list(dataset)
+
+    total    = len(snapshots)
+    train_end = int(0.7 * total)
+    val_end   = int(0.8 * total)
+
+    train_snapshots = snapshots[:train_end]
+    val_snapshots   = snapshots[train_end:val_end]
+    test_snapshots  = snapshots[val_end:]
+
+    def _extract_arrays(split_snapshots):
+        x_list, y_list = [], []
+        for snap in split_snapshots:
+            x_list.append(snap.x.numpy())   # (207, 2, 12)
+            y_list.append(snap.y.numpy())   # (207, 6)
+        return torch.FloatTensor(np.array(x_list)), torch.FloatTensor(np.array(y_list))
+
+    X_train, y_train = _extract_arrays(train_snapshots)
+    X_val,   y_val   = _extract_arrays(val_snapshots)
+    X_test,  y_test  = _extract_arrays(test_snapshots)
+
+    snap = snapshots[0]
     edge_index = snap.edge_index.to(DEVICE)
     edge_attr  = snap.edge_attr.float().to(DEVICE)
 
@@ -101,7 +117,7 @@ def step2_dataloaders(X_train, y_train, X_val, y_val, X_test, y_test):
 # STEP 3 — FAST MODEL
 # ---------------------------------------------------------------------------
 class FastTrafficGNN(nn.Module):
-    def __init__(self, num_nodes=207, in_features=1, hidden_dim=64, out_steps=6):
+    def __init__(self, num_nodes=207, in_features=2, hidden_dim=64, out_steps=6):
         super().__init__()
         self.num_nodes   = num_nodes
         self.hidden_dim  = hidden_dim
@@ -125,8 +141,9 @@ class FastTrafficGNN(nn.Module):
         )
 
     def forward(self, x, edge_index, edge_attr):
-        # x: (batch, num_nodes, 12)
+        # x: (batch, num_nodes, 2, 12) -> speed + time-of-day channels
         batch_size = x.shape[0]
+        x = x.permute(0, 1, 3, 2).contiguous()  # (batch, num_nodes, 12, 2)
 
         # Build batched edge_index: repeat with node offsets per batch item
         edge_indices = []
@@ -138,13 +155,16 @@ class FastTrafficGNN(nn.Module):
         batched_edge_index = torch.cat(edge_indices, dim=1)  # (2, B*E)
         batched_edge_attr  = torch.cat(edge_weights, dim=0)  # (B*E,)
 
-        # (batch, nodes, 12) → (batch*nodes, 12)
-        x_flat = x.reshape(batch_size * self.num_nodes, 12)
+        seq_len = x.shape[2]
+        in_features = x.shape[3]
+
+        # (batch, nodes, 12, 2) → (batch*nodes, 12, 2)
+        x_flat = x.reshape(batch_size * self.num_nodes, seq_len, in_features)
 
         h = None
         # 12 GConvGRU calls — all batch items processed together
-        for t in range(12):
-            x_t = x_flat[:, t].unsqueeze(-1)  # (B*207, 1)
+        for t in range(seq_len):
+            x_t = x_flat[:, t, :]  # (B*207, 2)
             if h is None:
                 h = self.gconv_gru(x_t, batched_edge_index, batched_edge_attr)
             else:
@@ -164,12 +184,13 @@ class FastTrafficGNN(nn.Module):
 def step3_build_model():
     print("\n=== STEP 3: Defining Fast Sequential T-GCN ===")
 
-    model = FastTrafficGNN(num_nodes=207, in_features=1, hidden_dim=64, out_steps=6)
+    model = FastTrafficGNN(num_nodes=207, in_features=2, hidden_dim=64, out_steps=6)
     model = model.to(DEVICE)
 
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Fast model parameters: {total_params:,}")
-    print("Speed: 12 GConvGRU calls per batch (was 16x12=192 in v2)")
+    print("Speed: 12 GConvGRU calls per batch using speed + time-of-day features")
+    print("Input channels: 2 (speed, time-of-day)")
     print(f"Estimated speedup: ~16x faster than v2")
 
     return model, total_params
@@ -387,7 +408,7 @@ def step8_compare(gnn_v3_results):
 
     import pandas as pd
 
-    existing_df = pd.read_csv(config.DATA_DIR / "all_results.csv")
+    existing_df = pd.read_csv(config.DATA_DIR / "baseline_results.csv")
 
     v3_rows = []
     for horizon in ["5min", "15min", "30min"]:
@@ -447,6 +468,42 @@ def step9_summary(total_params, best_epoch, total_time, gnn_v3_results, improvem
     print("=" * 65)
 
 
+def ensure_fig8_architecture():
+    """Ensure an architecture figure exists; generate a simple diagram if missing."""
+    out = config.FIGURES_DIR / "fig8_architecture.png"
+    if out.exists():
+        print(f"Architecture figure already exists -> {out}")
+        return
+
+    print("Generating simple architecture diagram for fig8_architecture.png")
+    import matplotlib.patches as patches
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.axis('off')
+
+    # Draw boxes: Input -> GConvGRU -> Dense -> Output
+    boxes = [
+        (0.05, 0.4, 0.2, 0.2, 'Input\n(speed, time) x12'),
+        (0.35, 0.4, 0.2, 0.2, 'GConvGRU\n(batched)'),
+        (0.65, 0.4, 0.2, 0.2, 'Dense\nProjection'),
+    ]
+    for x, y, w, h, label in boxes:
+        rect = patches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.02',
+                                      edgecolor='black', facecolor='#f0f0f0')
+        ax.add_patch(rect)
+        ax.text(x + w/2, y + h/2, label, ha='center', va='center', fontsize=10)
+
+    # Arrows
+    ax.annotate('', xy=(0.27, 0.5), xytext=(0.35, 0.5), arrowprops=dict(arrowstyle='->', lw=2))
+    ax.annotate('', xy=(0.57, 0.5), xytext=(0.65, 0.5), arrowprops=dict(arrowstyle='->', lw=2))
+
+    fig.text(0.5, 0.12, 'Figure 8: Model architecture (simplified).', ha='center', fontsize=9, style='italic')
+    plt.tight_layout()
+    plt.savefig(out, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"Saved architecture figure -> {out}")
+
+
 # ---------------------------------------------------------------------------
 # MAIN
 # ---------------------------------------------------------------------------
@@ -475,6 +532,9 @@ def main():
 
     # Step 6
     step6_plot_history(MODEL_SAVE_PATH)
+
+    # Ensure architecture figure (fig8) exists for submission
+    ensure_fig8_architecture()
 
     # Step 7
     gnn_v3_results = step7_evaluate(model, test_loader, edge_index, edge_attr, MODEL_SAVE_PATH)

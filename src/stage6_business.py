@@ -30,14 +30,43 @@ matplotlib.style.use("seaborn-v0_8")
 matplotlib.rcParams["figure.dpi"] = 150
 np.random.seed(42)
 
+# Add this block near the top of stage6_business.py
+# RIGHT AFTER the imports and BEFORE any function definitions
+
+import urllib.request
+
+def ensure_sensor_locations():
+    """Download sensor locations from DCRNN repo if not already present."""
+    sensor_loc_path = config.DATA_DIR / "sensor_locations.csv"
+
+    if not sensor_loc_path.exists():
+        print("  Sensor locations file not found. Downloading from DCRNN repo...")
+        url = (
+            "https://raw.githubusercontent.com/liyaguang/DCRNN/"
+            "master/data/sensor_graph/graph_sensor_locations.csv"
+        )
+        try:
+            urllib.request.urlretrieve(url, sensor_loc_path)
+            print(f"  Downloaded sensor_locations.csv -> {sensor_loc_path}")
+        except Exception as e:
+            print(f"  [ERROR] Could not download sensor locations: {e}")
+            print("  Manual fix: Download from https://github.com/liyaguang/DCRNN")
+            print("  Place file at: data/sensor_locations.csv")
+            raise
+    else:
+        print(f"  Sensor locations found: {sensor_loc_path}")
+
+    return sensor_loc_path
 
 # ---------------------------------------------------------------------------
 # STEP 1 — LOAD ALL DATA
 # ---------------------------------------------------------------------------
 def step1_load():
     print("\n=== STEP 1: Loading sensor data ===")
-
-    df_loc = pd.read_csv(config.DATA_DIR / "sensor_locations.csv")
+    
+    # FIXED (downloads automatically if missing):
+    sensor_loc_path = ensure_sensor_locations()
+    df_loc = pd.read_csv(sensor_loc_path)
     print(f"Loaded {len(df_loc)} sensor locations")
     print(df_loc.head(3).to_string())
 
