@@ -130,6 +130,6 @@ Python: 3.12.x
 
 CONTACT
 -------
-Student submission -- EM627 Spatial Data Science
+Varuni SIngh
 April 2026
 ============================================================
